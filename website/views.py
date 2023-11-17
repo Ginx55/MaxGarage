@@ -1285,64 +1285,6 @@ def AddUser(request):
                 return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
     except Exception as e:
         return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
-        
-# def AddUser(request):
-#     # try:
-#         if request.method == "POST":
-#             form = UserForm(request.POST)
-#             user = request.POST.get('username')
-#             if form.is_valid():
-#                 data = form.cleaned_data
-
-#                 username = data['username']
-#                 email = data['email']
-#                 password = data['password']
-#                 contact = data['contact']
-#                 role = data['role']
-#                 image_file = request.FILES.get('image')
-
-#                 try:
-#                     # Create a new user in Firebase Authentication
-#                     # user = authentication.create_user_with_email_and_password(email, password)
-#                     # localID = user['localId']
-
-#                     # # Upload the image to Firebase Storage
-#                     # storage.child("user_profiles/" + localID).put(image_file)
-#                     # imageurl = getImageURL("user_profiles/", localID)
-
-#                     # current_date = str(date.today())
-#                     # negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
-
-#                     # userData = {
-#                     #     "userID": localID,
-#                     #     "dateCreated": current_date,
-#                     #     "username": username,
-#                     #     "role": role,
-#                     #     "email": email,
-#                     #     "contact": contact,
-#                     #     "mode": "Dark Mode",
-#                     #     "negaIntDate": negaInt,
-#                     #     "status": True,
-#                     #     "lastLogin": "",
-#                     #     "imgsrc" : imageurl,
-#                     # }
-#                     # db.child("Users").push(userData)
-
-#                     # #You can add additional code here to log system activities if needed
-#                     # add_system_activities(request.session['uid'], request.session['role'], request.session['username'], " added a user", userData)
-
-#                     return JsonResponse({"message": "User added successfully"})
-                
-#                 except Exception as e:
-#                     return JsonResponse({"error": f"User creation failed: {str(e)}"}, status=500)
-            
-#             # Form is not valid, return detailed form errors
-#             form_errors = form.errors.as_json()
-#             return JsonResponse({"error": "Form validation failed", "errors": form_errors}, status=400)
-
-#     # except Exception as e:
-#     #     error_message = f"An error occurred while processing the user: {str(e)}"
-#     #     return JsonResponse({"error": error_message}, status=500)
 
 def SearchUser(request):
     if request.method == 'POST':

@@ -287,11 +287,7 @@
     </div>
     <div class="form-buttons">
       <button type="submit" value="Save" class="saveBTN">Save</button>
-      <button
-        type="button"
-        class="cancelBTN"
-        onclick="closePopUp('addUserForm')"
-      >
+      <button type="button" class="cancelBTN" onclick="closeAddUser()">
         Cancel
       </button>
     </div>
@@ -460,6 +456,21 @@
       },
     });
   });
+  function closeAddUser() {
+    closePopUp("addUserForm");
+    $("#imageFile").val("");
+    $("#imgPreview").attr("src", "");
+
+    $("#imageHolder").show();
+    $("#imgPreview").hide();
+
+    $("#username").val("");
+    $("#password").val("");
+    $("#confirmpass").val("");
+    $("#role").val("");
+    $("#email").val("");
+    $("#contact").val("");
+  }
 
   $(document).on("submit", "#userForm", function (e) {
     e.preventDefault();
@@ -486,12 +497,7 @@
         "X-CSRFToken": csrfToken,
       },
       success: function (response) {
-        closePopUp("addUserForm");
-        $("#username").val("");
-        $("#password").val("");
-        $("#role").val("");
-        $("#email").val("");
-        $("#contact").val("");
+        closeAddUser();
 
         // Display success message
         $("#success-message").text(response.message);
