@@ -32,7 +32,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mxgmotorparts@gmail.com'
 EMAIL_HOST_PASSWORD = 'ppyt fxhw mnok andr'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
