@@ -12,6 +12,7 @@
   overflow: hidden;
   opacity: 0;
   pointer-events: none;
+  z-index: 9999;
 }
 .alert.showAlert {
   opacity: 1;
@@ -94,6 +95,7 @@
   overflow: hidden;
   opacity: 0;
   pointer-events: none;
+  z-index: 9999;
 }
 
 .success-alert.showAlert {
@@ -186,6 +188,7 @@
   overflow: hidden;
   opacity: 0;
   pointer-events: none;
+  z-index: 9999;
 }
 
 .warning-alert.showAlert {
