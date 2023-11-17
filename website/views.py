@@ -132,7 +132,7 @@ def Dashboard(request):
         activityList = db.child("SystemActivities").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(3).get().val()
         activityList = get_activities_with_image_url(activityList)
     except AttributeError:
-        print("No activities found")
+        pass
 
     currentDate = datetime.now()
     startDate = currentDate - timedelta(days=6)
@@ -873,7 +873,6 @@ def create_deleted_data(item, bin_data):
 def remove_item(request):
     if request.method == 'POST':
         item_key = request.POST.get('itemID')
-        print(item_key)
         item = db.child("Items").child(item_key).get().val()
 
         if item:
