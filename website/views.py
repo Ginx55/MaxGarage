@@ -1184,28 +1184,67 @@ class AddUserForm(forms.Form):
             raise forms.ValidationError('Invalid role. Allowed values are: ' + ', '.join(allowed_roles))
         return role
 
-    def clean(self):
-        cleaned_data = super().clean()
-
 def AddUser(request):
-    if request.method == "POST":
-        form = AddUserForm(request.POST)
-        if form.is_valid():
-            # Do something with the valid form data
-            return JsonResponse({"message": "User added successfully"})
-        else:
-            # Form is not valid, you can access the custom error messages
-            errors = {
-                'username': form.errors.get('username', [])[0] if 'username' in form.errors else None,
-                'email': form.errors.get('email', [])[0] if 'email' in form.errors else None,
-                'password': form.errors.get('password', [])[0] if 'password' in form.errors else None,
-                'contact': form.errors.get('contact', [])[0] if 'contact' in form.errors else None,
-                'role': form.errors.get('role', [])[0] if 'role' in form.errors else None,
-            }
+    try:
+        if request.method == "POST":
+            form = AddUserForm(request.POST)
+            if form.is_valid():
+                # Do something with the valid form data
+                data = form.cleaned_data
 
-            # Filter out None values
-            errors = {key: value for key, value in errors.items() if value is not None}
-            return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
+                username = data['username']
+                email = data['email']
+                password = data['password']
+                contact = data['contact']
+                role = data['role']
+                user = authentication.create_user_with_email_and_password(email, password)
+                localID = user['localId']
+
+                image_file = request.FILES.get('image')
+                imgsrc = ""
+
+                if image_file is not None:
+                    file_extension = get_file_extension(image_file.name)
+
+                    if file_extension == '.gif' or is_image(image_file):
+                        storage.child("user_profiles/" + localID).put(image_file)
+                        imgsrc = getImageURL("user_profiles/", localID)
+                    else:
+                        error_message = "Invalid file format."
+                        return JsonResponse({"message": "Invalid data", "errors": {"file": [error_message]}}, status=400)
+                
+                current_date = str(date.today())
+                negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
+                userData = {
+                    "userID": localID,
+                    "dateCreated": current_date,
+                    "username": username,
+                    "role": role,
+                    "email": email,
+                    "contact": contact,
+                    "mode": "Dark Mode",
+                    "negaIntDate": negaInt,
+                    "status": True,
+                    "lastLogin": "",
+                    "imgsrc" : imgsrc,
+                }
+                db.child("Users").push(userData)
+                return JsonResponse({"message": "User added successfully"})
+            else:
+                # Form is not valid, you can access the custom error messages
+                errors = {
+                    'username': form.errors.get('username', [])[0] if 'username' in form.errors else None,
+                    'email': form.errors.get('email', [])[0] if 'email' in form.errors else None,
+                    'password': form.errors.get('password', [])[0] if 'password' in form.errors else None,
+                    'contact': form.errors.get('contact', [])[0] if 'contact' in form.errors else None,
+                    'role': form.errors.get('role', [])[0] if 'role' in form.errors else None,
+                }
+
+                # Filter out None values
+                errors = {key: value for key, value in errors.items() if value is not None}
+                return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
         
 # def AddUser(request):
 #     # try:
