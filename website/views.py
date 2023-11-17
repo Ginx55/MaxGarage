@@ -33,23 +33,12 @@ db = firebase.database()
 storage = firebase.storage()
 # Create your views here.
 
-def get_emails_by_role(role):
-    try:
-        user_list = db.child("Users").order_by_child("role").equal_to(role).get().val()
-        return [user['email'] for user in user_list.values()] if user_list else []
-    except Exception as e:
-        print(f"Error fetching emails for {role}: {e}")
-        return []
 
 def send_email(subject_message ,email_message):
-    admin_emails = get_emails_by_role("Admin")
-    manager_emails = get_emails_by_role("Manager")
-
-    recipient_list = admin_emails + manager_emails
-
+    recipient_list = db.child("Users").order_by_child("status").equal_to(True).get().val()
     subject = subject_message
     message = email_message
-    from_email = 'kkuruba44@gmail.com'
+    from_email = 'mxgmotorparts@gmail.com'
 
     email = EmailMessage(subject, message, from_email, recipient_list)
     email.send()
