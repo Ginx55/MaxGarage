@@ -460,7 +460,7 @@
       headers: {
         "X-CSRFToken": csrfToken,
       },
-      success: function (message) {
+      success: function (response) {
         closePopUp("addUserForm");
         $("#username").val("");
         $("#password").val("");
@@ -468,25 +468,53 @@
         $("#email").val("");
         $("#contact").val("");
 
-        alert(message);
+        // Display success message
+        $("#success-message").text(response.message);
+        $(".success-alert").addClass("show");
+        $(".success-alert").removeClass("hide");
+        $(".success-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".success-alert").removeClass("show");
+          $(".success-alert").addClass("hide");
+        }, 5000);
       },
       error: function (xhr, textStatus, errorThrown) {
         try {
           var errorResponse = JSON.parse(xhr.responseText);
 
           if (errorResponse.errors) {
-            // Display validation errors to the user
-            Object.keys(errorResponse.errors).forEach(function (field) {
-              var errorMessage = errorResponse.errors[field];
-              alert("Error in " + field + ": " + errorMessage);
-            });
+            // Display the first validation error to the user
+            var firstErrorField = Object.keys(errorResponse.errors)[0];
+            var errorMessage = errorResponse.errors[firstErrorField];
+            $("#error-message").text("Error: " + errorMessage);
+            $(".error-alert").addClass("show");
+            $(".error-alert").removeClass("hide");
+            $(".error-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".error-alert").removeClass("show");
+              $(".error-alert").addClass("hide");
+            }, 5000);
           } else {
             // Display a generic error message
-            alert("An unexpected error occurred.");
+            $("#error-message").text("An unexpected error occurred.");
+            $(".error-alert").addClass("show");
+            $(".error-alert").removeClass("hide");
+            $(".error-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".error-alert").removeClass("show");
+              $(".error-alert").addClass("hide");
+            }, 5000);
           }
         } catch (e) {
           // Display a generic error message if parsing fails
-          alert("An unexpected error occurred.");
+          $("#error-message").text("An unexpected error occurred.");
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
         }
       },
     });

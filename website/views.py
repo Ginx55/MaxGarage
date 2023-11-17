@@ -1192,7 +1192,7 @@ def AddUser(request):
         form = AddUserForm(request.POST)
         if form.is_valid():
             # Do something with the valid form data
-            pass
+            return JsonResponse({"message": "User added successfully"})
         else:
             # Form is not valid, you can access the custom error messages
             errors = {
