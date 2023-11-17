@@ -232,7 +232,7 @@
     </div>
     <div class="form-group">
       <label for="returned-quantity">Returned Quantity</label>
-      <input type="number" id="returned-quantity" />
+      <input type="number" id="returned-quantity"/>
       <p>pieces</p>
     </div>
     <div class="form-group">
@@ -394,35 +394,46 @@
         Date.now().toString(36) + Math.random().toString(36).substr(2);
       rowID = uid;
       if (returnedQuan != "") {
-        if (returnedQuan <= quantity) {
-          const temp = returnedTable.row
-            .add([
-              itemName,
-              returnedQuan,
-              returnType,
-              "<span class='material-symbols-outlined danger'>delete</span>",
-            ])
-            .node();
+        if (returnedQuan > 0) {
+          if (returnedQuan <= quantity) {
+            const temp = returnedTable.row
+              .add([
+                itemName,
+                returnedQuan,
+                returnType,
+                "<span class='material-symbols-outlined danger'>delete</span>",
+              ])
+              .node();
 
-          $(temp).attr("data-itemname", itemName);
-          $(temp).attr("data-quantity", returnedQuan);
-          $(temp).attr("data-id", itemID);
-          $(temp).attr("data-fixedid", fixedID);
-          $(temp).attr("data-returntype", returnType);
-          $(temp).attr("id", uid + "1");
+            $(temp).attr("data-itemname", itemName);
+            $(temp).attr("data-quantity", returnedQuan);
+            $(temp).attr("data-id", itemID);
+            $(temp).attr("data-fixedid", fixedID);
+            $(temp).attr("data-returntype", returnType);
+            $(temp).attr("id", uid + "1");
 
-          returnedTable.draw(false);
+            returnedTable.draw(false);
 
-          const currentQuantity = quantity - returnedQuan;
-          if (currentQuantity <= 0) {
-            selectedOption.remove();
+            const currentQuantity = quantity - returnedQuan;
+            if (currentQuantity <= 0) {
+              selectedOption.remove();
+            } else {
+              selectedOption.attr("data-quantity", currentQuantity);
+            }
           } else {
-            selectedOption.attr("data-quantity", currentQuantity);
+            $("#error-message").text(
+              "Returned quantity should not exceed the bought quantity"
+            );
+            $(".error-alert").addClass("show");
+            $(".error-alert").removeClass("hide");
+            $(".error-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".error-alert").removeClass("show");
+              $(".error-alert").addClass("hide");
+            }, 5000);
           }
         } else {
-          $("#error-message").text(
-            "Returned quantity should not exceed the bought quantity"
-          );
+          $("#error-message").text("Returned quantity should be less than 0.");
           $(".error-alert").addClass("show");
           $(".error-alert").removeClass("hide");
           $(".error-alert").addClass("showAlert");
