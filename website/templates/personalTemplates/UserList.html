@@ -422,6 +422,18 @@
 
         alert(message);
       },
+      error: function (xhr, textStatus, errorThrown) {
+        try {
+          var errorResponse = JSON.parse(xhr.responseText);
+          if (errorResponse.error) {
+            alert("Error: " + errorResponse.error);
+          } else {
+            alert("An unexpected error occurred.");
+          }
+        } catch (e) {
+          alert("An unexpected error occurred.");
+        }
+      },
     });
   });
 
@@ -457,6 +469,25 @@
         $("#contact").val("");
 
         alert(message);
+      },
+      error: function (xhr, textStatus, errorThrown) {
+        try {
+          var errorResponse = JSON.parse(xhr.responseText);
+
+          if (errorResponse.errors) {
+            // Display validation errors to the user
+            Object.keys(errorResponse.errors).forEach(function (field) {
+              var errorMessage = errorResponse.errors[field];
+              alert("Error in " + field + ": " + errorMessage);
+            });
+          } else {
+            // Display a generic error message
+            alert("An unexpected error occurred.");
+          }
+        } catch (e) {
+          // Display a generic error message if parsing fails
+          alert("An unexpected error occurred.");
+        }
       },
     });
   });

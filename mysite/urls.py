@@ -21,11 +21,11 @@ from website import views
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # LogIn
+    # Authentication
     path('', views.login, name="LogIn"),
     path('ForgotPass/', views.ForgotPass, name="ForgotPass"),
     path('send_forgot_pass/', views.send_forgot_pass, name="send_forgot_pass"),
-    
+
     # Dashboard
     path('Dashboard/', views.Dashboard, name="Dashboard"),
 
@@ -50,7 +50,6 @@ urlpatterns = [
     # Return
     path('Return/', views.Return, name="Return"),
     path('SearchTransactions/', views.SearchTransactions, name="SearchTransactions"),
-   
     path('ReturnDetails/', views.ReturnDetails, name="ReturnDetails"),
     path('ItemReceived/', views.ItemReceived, name="ItemReceived"),
     path('InsertReturn/', views.insert_return, name="InsertReturn"),
@@ -69,10 +68,9 @@ urlpatterns = [
     path('UserList/SaveUser/', views.SaveUser, name="SaveUser"),
     path('UserList/AddUser/', views.AddUser, name="AddUser"),
 
+    # Other Paths
     path('AddItem/', views.add_item, name="AddItem"),
-
     path('CriticalQuantities/', views.CriticalQuantities, name="CriticalQuantities"),
     path('AboutToExpire/', views.AboutToExpire, name="AboutToExpire"),
-
     path('getItemData/', views.getItemData, name="getItemData"),
 ]

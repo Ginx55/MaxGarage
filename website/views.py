@@ -1158,62 +1158,112 @@ def UserList(request):
     }
     return render(request, "personalTemplates/UserList.html", data)
 
-class UserForm(forms.Form):
-    username = forms.CharField(max_length=100)
-    email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput)
-    contact = forms.CharField(max_length=100)
-    role = forms.CharField(max_length=100)
+class AddUserForm(forms.Form):
+    username = forms.CharField(max_length=100, min_length=3, error_messages={
+        'min_length': 'Username must be at least 3 characters long.',
+        'max_length': 'Username cannot be more than 100 characters long.',
+    })
+    email = forms.EmailField(error_messages={
+        'invalid': 'Enter a valid email address.',
+    })
+    password = forms.CharField(widget=forms.PasswordInput, min_length=6, error_messages={
+        'min_length': 'Password must be at least 6 characters long.',
+    })
+    contact = forms.CharField(max_length=11, min_length=11, error_messages={
+        'min_length': 'Contact number must be 11 digits long.',
+        'max_length': 'Contact number must be 11 digits long.',
+    })
+    role = forms.CharField(error_messages={
+        'required': 'Role is required.',
+    })
+
+    def clean_role(self):
+        role = self.cleaned_data.get('role')
+        allowed_roles = ['Admin', 'Manager', 'Cashier']
+        if role not in allowed_roles:
+            raise forms.ValidationError('Invalid role. Allowed values are: ' + ', '.join(allowed_roles))
+        return role
+
+    def clean(self):
+        cleaned_data = super().clean()
 
 def AddUser(request):
     if request.method == "POST":
-        form = UserForm(request.POST)
+        form = AddUserForm(request.POST)
         if form.is_valid():
-            data = form.cleaned_data
+            # Do something with the valid form data
+            pass
+        else:
+            # Form is not valid, you can access the custom error messages
+            errors = {
+                'username': form.errors.get('username', [])[0] if 'username' in form.errors else None,
+                'email': form.errors.get('email', [])[0] if 'email' in form.errors else None,
+                'password': form.errors.get('password', [])[0] if 'password' in form.errors else None,
+                'contact': form.errors.get('contact', [])[0] if 'contact' in form.errors else None,
+                'role': form.errors.get('role', [])[0] if 'role' in form.errors else None,
+            }
 
-            username = data['username']
-            email = data['email']
-            password = data['password']
-            contact = data['contact']
-            role = data['role']
-            image_file = request.FILES.get('image')
+            # Filter out None values
+            errors = {key: value for key, value in errors.items() if value is not None}
+            return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
+        
+# def AddUser(request):
+#     # try:
+#         if request.method == "POST":
+#             form = UserForm(request.POST)
+#             user = request.POST.get('username')
+#             if form.is_valid():
+#                 data = form.cleaned_data
 
-            try:
-                # Create a new user in Firebase Authentication
-                user = authentication.create_user_with_email_and_password(email, password)
-                localID = user['localId']
+#                 username = data['username']
+#                 email = data['email']
+#                 password = data['password']
+#                 contact = data['contact']
+#                 role = data['role']
+#                 image_file = request.FILES.get('image')
 
-                # Upload the image to Firebase Storage
-                storage.child("user_profiles/" + localID).put(image_file)
-                imageurl = getImageURL("user_profiles/", localID)
+#                 try:
+#                     # Create a new user in Firebase Authentication
+#                     # user = authentication.create_user_with_email_and_password(email, password)
+#                     # localID = user['localId']
 
-                current_date = str(date.today())
-                negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
+#                     # # Upload the image to Firebase Storage
+#                     # storage.child("user_profiles/" + localID).put(image_file)
+#                     # imageurl = getImageURL("user_profiles/", localID)
 
-                userData = {
-                    "userID": localID,
-                    "dateCreated": current_date,
-                    "username": username,
-                    "role": role,
-                    "email": email,
-                    "contact": contact,
-                    "mode": "Dark Mode",
-                    "negaIntDate": negaInt,
-                    "status": True,
-                    "lastLogin": "",
-                    "imgsrc" : imageurl,
-                }
-                db.child("Users").push(userData)
+#                     # current_date = str(date.today())
+#                     # negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
 
-                # You can add additional code here to log system activities if needed
-                # add_system_activities(request.session['uid'], request.session['role'], request.session['username'], " added a user", userData)
+#                     # userData = {
+#                     #     "userID": localID,
+#                     #     "dateCreated": current_date,
+#                     #     "username": username,
+#                     #     "role": role,
+#                     #     "email": email,
+#                     #     "contact": contact,
+#                     #     "mode": "Dark Mode",
+#                     #     "negaIntDate": negaInt,
+#                     #     "status": True,
+#                     #     "lastLogin": "",
+#                     #     "imgsrc" : imageurl,
+#                     # }
+#                     # db.child("Users").push(userData)
 
-                return HttpResponse("User added successfully")
+#                     # #You can add additional code here to log system activities if needed
+#                     # add_system_activities(request.session['uid'], request.session['role'], request.session['username'], " added a user", userData)
 
-            except Exception as e:
-                return HttpResponse(f"User creation failed: {str(e)}")
-    
-    return HttpResponse("Invalid form data")
+#                     return JsonResponse({"message": "User added successfully"})
+                
+#                 except Exception as e:
+#                     return JsonResponse({"error": f"User creation failed: {str(e)}"}, status=500)
+            
+#             # Form is not valid, return detailed form errors
+#             form_errors = form.errors.as_json()
+#             return JsonResponse({"error": "Form validation failed", "errors": form_errors}, status=400)
+
+#     # except Exception as e:
+#     #     error_message = f"An error occurred while processing the user: {str(e)}"
+#     #     return JsonResponse({"error": error_message}, status=500)
 
 def SearchUser(request):
     if request.method == 'POST':
