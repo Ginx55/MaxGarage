@@ -33,7 +33,6 @@ db = firebase.database()
 storage = firebase.storage()
 # Create your views here.
 
-
 def send_email(subject_message ,email_message):
     recipient_list = db.child("Users").order_by_child("status").equal_to(True).get().val()
     subject = subject_message
@@ -1394,6 +1393,7 @@ def SaveUser(request):
                 # Filter out None values
                 errors = {key: value for key, value in errors.items() if value is not None}
                 return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
+            
     except Exception as e:
         return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
 
