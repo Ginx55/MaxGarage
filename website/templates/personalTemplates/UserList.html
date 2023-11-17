@@ -2,6 +2,7 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
 
 <style>
+  /* Common styles for round sliders */
   .slider.round {
     border-radius: 34px;
   }
@@ -10,6 +11,7 @@
     border-radius: 50%;
   }
 
+  /* Styles for the switch container */
   .switch {
     position: relative;
     display: inline-block;
@@ -23,6 +25,7 @@
     height: 0;
   }
 
+  /* Styles for the slider within the switch container */
   .slider {
     position: absolute;
     cursor: pointer;
@@ -31,10 +34,10 @@
     right: 0;
     bottom: 0;
     background-color: #ff7782;
-    -webkit-transition: 0.4s;
     transition: 0.4s;
   }
 
+  /* Styles for the slider knob */
   .slider:before {
     position: absolute;
     content: "";
@@ -43,68 +46,74 @@
     left: 4px;
     bottom: 4px;
     background-color: white;
-    -webkit-transition: 0.4s;
     transition: 0.4s;
   }
 
+  /* Styles for the slider when checked */
   input:checked + .slider {
     background-color: #41f1b6;
   }
 
+  /* Styles for the slider when focused */
   input:focus + .slider {
     box-shadow: 0 0 1px #41f1b6;
   }
 
+  /* Styles for the slider knob when checked */
   input:checked + .slider:before {
-    -webkit-transform: translateX(26px);
-    -ms-transform: translateX(26px);
     transform: translateX(26px);
   }
 
+  /* Styles for the user container grid */
   .userContainer {
     display: grid;
-    grid-template-columns: 50% 50%;
+    grid-template-columns: 55% 45%;
     gap: 10px;
   }
 
+  /* Styles for user input within the container */
   .userContainer input {
     margin-bottom: 10px;
   }
 
+  /* Styles for the image container */
   .img {
-    height: 195px;
+    height: 20rem;
     width: 100%;
     background-color: white;
-    margin-bottom: 15px;
     display: none;
   }
 
+  /* Styles for the role container */
   .role {
     display: flex;
     justify-content: center;
   }
 
+  /* Styles for the role select dropdown */
   .role select {
     height: 30px;
     padding: 5px;
   }
 
+  /* Styles for the image holder container */
   .imageHolder {
     text-align: center;
     padding: 3%;
     border: thin solid black;
-    height: 195px;
+    height: 20rem;
     width: 100%;
-
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
+  /* Styles to hide file input */
   input[type="file"] {
     display: none;
   }
 
+  /* Cursor style for labels */
   label {
     cursor: pointer;
   }
@@ -170,7 +179,7 @@
   </div>
 </main>
 
-<div class="form-popup" id="editUserForm" style="width: 40%">
+<div class="form-popup" id="editUserForm" style="width: 55%">
   <h1 style="text-align: center">Edit User</h1>
 
   <div style="text-align: right">
@@ -227,7 +236,7 @@
   </form>
 </div>
 
-<div class="form-popup" id="addUserForm" style="width: 40%">
+<div class="form-popup" id="addUserForm" style="width: 55%">
   <h1 style="text-align: center">Add User</h1>
   <form class="form-container" id="userForm">
     {% csrf_token %}
@@ -265,6 +274,13 @@
         <input type="text" placeholder="Email" id="email" required />
         <p>Password:</p>
         <input type="password" placeholder="Password" id="password" required />
+        <p>Confirm Passowrd:</p>
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          id="confirmpass"
+          required
+        />
         <p>Contact:</p>
         <input type="text" placeholder="Contact" id="contact" required />
       </div>
@@ -454,6 +470,7 @@
     formData.append("image", $("#imageFile")[0].files[0]);
     formData.append("username", $("#username").val());
     formData.append("password", $("#password").val());
+    formData.append("confirmpass", $("#confirmpass").val());
     formData.append("role", $("#roles").val());
     formData.append("email", $("#email").val());
     formData.append("contact", $("#contact").val());

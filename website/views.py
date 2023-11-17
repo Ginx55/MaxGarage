@@ -1159,23 +1159,46 @@ def UserList(request):
     return render(request, "personalTemplates/UserList.html", data)
 
 class AddUserForm(forms.Form):
-    username = forms.CharField(max_length=100, min_length=3, error_messages={
-        'min_length': 'Username must be at least 3 characters long.',
-        'max_length': 'Username cannot be more than 100 characters long.',
-    })
-    email = forms.EmailField(error_messages={
-        'invalid': 'Enter a valid email address.',
-    })
-    password = forms.CharField(widget=forms.PasswordInput, min_length=6, error_messages={
-        'min_length': 'Password must be at least 6 characters long.',
-    })
-    contact = forms.CharField(max_length=11, min_length=11, error_messages={
-        'min_length': 'Contact number must be 11 digits long.',
-        'max_length': 'Contact number must be 11 digits long.',
-    })
-    role = forms.CharField(error_messages={
-        'required': 'Role is required.',
-    })
+    username = forms.CharField(
+        max_length=100,
+        min_length=3,
+        error_messages={
+            'min_length': 'Username must be at least 3 characters long.',
+            'max_length': 'Username cannot be more than 100 characters long.',
+        }
+    )
+    email = forms.EmailField(
+        error_messages={
+            'invalid': 'Enter a valid email address.',
+        }
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput,
+        min_length=6,
+        error_messages={
+            'min_length': 'Password must be at least 6 characters long.',
+        }
+    )
+    confirmpass = forms.CharField(
+        widget=forms.PasswordInput,
+        min_length=6,
+        error_messages={
+            'min_length': 'Confirm Password must be at least 6 characters long.',
+        }
+    )
+    contact = forms.CharField(
+        max_length=11,
+        min_length=11,
+        error_messages={
+            'min_length': 'Contact number must be 11 digits long.',
+            'max_length': 'Contact number must be 11 digits long.',
+        }
+    )
+    role = forms.CharField(
+        error_messages={
+            'required': 'Role is required.',
+        }
+    )
 
     def clean_role(self):
         role = self.cleaned_data.get('role')
@@ -1183,6 +1206,16 @@ class AddUserForm(forms.Form):
         if role not in allowed_roles:
             raise forms.ValidationError('Invalid role. Allowed values are: ' + ', '.join(allowed_roles))
         return role
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        confirmpass = cleaned_data.get('confirmpass')
+
+        # Check if password and confirm password match
+        if password and confirmpass and password != confirmpass:
+            self.add_error('confirmpass', 'Password and Confirm Password do not match.')
+
 
 def AddUser(request):
     try:
@@ -1197,6 +1230,12 @@ def AddUser(request):
                 password = data['password']
                 contact = data['contact']
                 role = data['role']
+
+                check_user = db.child("Users").order_by_child("email").equal_to(email).get().val()
+                if check_user:
+                    errors = {'email': 'Email already exists'}
+                    return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
+ 
                 user = authentication.create_user_with_email_and_password(email, password)
                 localID = user['localId']
 
@@ -1236,6 +1275,7 @@ def AddUser(request):
                     'username': form.errors.get('username', [])[0] if 'username' in form.errors else None,
                     'email': form.errors.get('email', [])[0] if 'email' in form.errors else None,
                     'password': form.errors.get('password', [])[0] if 'password' in form.errors else None,
+                    'confirmpass': form.errors.get('confirmpass', [])[0] if 'confirmpass' in form.errors else None,
                     'contact': form.errors.get('contact', [])[0] if 'contact' in form.errors else None,
                     'role': form.errors.get('role', [])[0] if 'role' in form.errors else None,
                 }
