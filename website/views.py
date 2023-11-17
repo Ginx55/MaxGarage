@@ -15,7 +15,6 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseBadRequest
 
 import pyrebase
 
@@ -528,12 +527,27 @@ def is_image(file_path):
     return imghdr.what(file_path) is not None
     
 class AddItemForm(forms.Form):
-    itemID = forms.CharField(max_length=50, min_length=6)
-    itemName = forms.CharField(max_length=100, min_length=3)
-    itemPrice = forms.FloatField(validators=[MinValueValidator(0.0)])
-    itemQuantity = forms.IntegerField(validators=[MinValueValidator(0)])
-    itemMaxQuantity = forms.IntegerField(validators=[MinValueValidator(0)])
-    itemCriticalQuantity = forms.IntegerField(validators=[MinValueValidator(0)])
+    itemID = forms.CharField(max_length=12, min_length=8, error_messages={
+        'min_length': 'Item ID must be at least 8 characters long.',
+        'max_length': 'Item ID cannot exceed 12 characters.',
+    })
+    itemName = forms.CharField(max_length=30, min_length=3, error_messages={
+        'min_length': 'Item name must be at least 3 characters long.',
+        'max_length': 'Item name cannot exceed 30 characters.',
+    })
+    itemPrice = forms.FloatField(validators=[MinValueValidator(0.0)], error_messages={
+        'min_value': 'Item price must be a non-negative value.',
+    })
+    itemQuantity = forms.IntegerField(validators=[MinValueValidator(0)], error_messages={
+        'min_value': 'Item quantity must be a non-negative integer.',
+    })
+    itemMaxQuantity = forms.IntegerField(validators=[MinValueValidator(0)], error_messages={
+        'min_value': 'Maximum quantity must be a non-negative integer.',
+        'max_value': 'Maximum quantity cannot exceed 1000.',
+    })
+    itemCriticalQuantity = forms.IntegerField(validators=[MinValueValidator(0)], error_messages={
+        'min_value': 'Critical quantity must be a non-negative integer.',
+    })
 
     expiryDates = forms.JSONField(required=False)
 
@@ -547,7 +561,7 @@ class AddItemForm(forms.Form):
         if item_quantity is not None and item_max_quantity is not None and item_critical_quantity is not None:
             if item_critical_quantity > item_max_quantity:
                 raise forms.ValidationError("Item critical quantity cannot be higher than the maximum quantity.")
-    
+
     def clean_expiryDates(self):
         expiry_dates = self.cleaned_data.get('expiryDates')
 
@@ -561,7 +575,7 @@ class AddItemForm(forms.Form):
             notify = entry.get('notify')
 
             if not date:
-                raise ValidationError("Expiry date is required.")
+                raise forms.ValidationError("Expiry date is required.")
             cleaned_expiry_dates.append({'date': date, 'notify': notify})
 
         return cleaned_expiry_dates
@@ -779,6 +793,7 @@ def save_edit_item(request):
                 return JsonResponse({"message": "Invalid form data", "errors": form.errors}, status=400)
         else:
             return JsonResponse({"message": "Invalid request method"}, status=405)
+    
     except Exception as e:
         return JsonResponse({"message": "An unexpected error occurred"}, status=500)
 
@@ -934,8 +949,12 @@ class ReturnForm(forms.Form):
             returnType = entry.get('returnType')
 
             # Check if itemQuantity is not an integer
-            if not itemQuantity:
-                raise ValidationError('Invalid itemQuantity. It should be an integer.')
+            try:
+                itemQuantity = int(itemQuantity)
+                if itemQuantity <= 0:
+                    raise ValidationError('Invalid itemQuantity. It should be a positive integer.')
+            except (ValueError, TypeError):
+                raise ValidationError('Invalid itemQuantity. It should be a valid integer.')
 
             # Check if returnType is not 'Replacement' or 'Refund'
             if returnType not in ['Replacement', 'Refund']:
@@ -955,91 +974,96 @@ class ReturnForm(forms.Form):
 
 def calculate_total_price(data_update):
     new_total = sum(float(item["itemPrice"]) if item["itemPrice"] != "REFUNDED" else 0 for item in data_update)
-    print(new_total)
     # new_tax = (12 / 100) * new_total
     return new_total
 
 def insert_return(request):
     try:
         if request.method == 'POST':
-            returned_items = json.loads(request.POST['itemList'])
-            transID = request.POST.get("transactionID")
+            # Parse the returned_items using the ReturnForm
+            form = ReturnForm(request.POST)
+            if form.is_valid():
+                returned_items = form.cleaned_data['itemList']
+                transID = form.cleaned_data['transactionID']
 
-            transaction = db.child("TransactionLog").order_by_child("transactionID").equal_to(transID).get().val()
-            
-            transaction_key = list(transaction.keys())[0]
-            items_bought = transaction[transaction_key]["itemsBought"]
-            
-            for returned_item in returned_items:
-                item_name = returned_item['itemName']
-                returned_quantity = returned_item['itemQuantity']
-                item_id = returned_item['itemID']
-                fixed_id = returned_item['fixedID']
-                return_type = returned_item['returnType']
-                
-                current_datetime = datetime.now()
-                current_date = str(date.today())
-                current_time = current_datetime.strftime("%I:%M %p") 
+                # Fetch transaction details
+                transaction = db.child("TransactionLog").order_by_child("transactionID").equal_to(transID).get().val()
 
-                nega_int_date = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
-                
-                item_key, item_details = get_item_details_return(item_id, fixed_id)
-                
-                for index, item_bought in enumerate(items_bought):
-                    if item_bought["fixedID"] == fixed_id:
-                        if return_type == "Replacement":
-                            item_bought["returnedDate"] = current_date
-                            if item_details:
-                                current_quantity = int(item_details[item_key]['itemQuantity'])
-                                remaining_quantity = current_quantity - int(returned_quantity)
-                                if remaining_quantity <= 0:
-                                    remaining_quantity = 0
-                                db.child("Items").child(item_key).update({"itemQuantity": remaining_quantity})
-                            
-                        elif return_type == "Refund":
-                            bought_quantity = item_bought["itemQuantity"]
-                            new_quantity = int(bought_quantity) - int(returned_quantity)
+                if not transaction:
+                    return JsonResponse({"error": "Transaction not found."}, status=400)
 
-                            if new_quantity <= 0:
-                                new_quantity = "REFUNDED"
-                                new_price = "REFUNDED"
-                            else:
-                                new_price = int(item_bought["pricePerPiece"]) * new_quantity
+                transaction_key = list(transaction.keys())[0]
+                items_bought = transaction[transaction_key]["itemsBought"]
 
-                            item_bought["itemQuantity"] = new_quantity
-                            item_bought["itemPrice"] = new_price
+                for returned_item in returned_items:
+                    item_name = returned_item['itemName']
+                    returned_quantity = returned_item['itemQuantity']
+                    item_id = returned_item['itemID']
+                    fixed_id = returned_item['fixedID']
+                    return_type = returned_item['returnType']
 
-            data_update = [item for index, item in enumerate(items_bought)]
+                    current_datetime = datetime.now()
+                    current_date = str(date.today())
+                    current_time = current_datetime.strftime("%I:%M %p")
 
-            new_total_price = calculate_total_price(data_update)
-            update_data = {
-                "itemsBought": data_update,
-                "totalPrice": new_total_price,
-                # "tax": new_tax,
-                "change": transaction[transaction_key]["payment"] - new_total_price,
-            }
+                    nega_int_date = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
 
-            db.child("TransactionLog").child(transaction_key).update(update_data)
+                    item_key, item_details = get_item_details_return(item_id, fixed_id)
 
-            return_data = {
-                "itemID": item_id,
-                "fixedID": fixed_id,
-                "returnType": return_type,
-                "itemName": item_name,
-                "returnedQuantity": returned_quantity,
-                "currentDate": current_date,
-                "currentTime": current_time,
-                "transactionID": transID,
-                "status": "returned to supplier",
-                "negaIntDate": nega_int_date,
-                "currentUser": request.session['username'],
-                "customer" : transaction[transaction_key]["customer"],
-            }
-            db.child("Return").push(return_data)
+                    for index, item_bought in enumerate(items_bought):
+                        if item_bought["fixedID"] == fixed_id:
+                            if return_type == "Replacement":
+                                item_bought["returnedDate"] = current_date
+                                if item_details:
+                                    current_quantity = int(item_details[item_key]['itemQuantity'])
+                                    remaining_quantity = max(current_quantity - int(returned_quantity), 0)
+                                    db.child("Items").child(item_key).update({"itemQuantity": remaining_quantity})
 
-            return JsonResponse({"message": "Items have been successfully added to the return!"})
+                            elif return_type == "Refund":
+                                bought_quantity = item_bought["itemQuantity"]
+                                new_quantity = max(int(bought_quantity) - int(returned_quantity), 0)
+
+                                if new_quantity == 0:
+                                    item_bought["itemStatus"] = "REFUNDED"
+                                    item_bought["itemPrice"] = "REFUNDED"
+                                else:
+                                    item_bought["itemQuantity"] = new_quantity
+                                    item_bought["itemPrice"] = int(item_bought["pricePerPiece"]) * new_quantity
+
+                    return_data = {
+                        "itemID": item_id,
+                        "fixedID": fixed_id,
+                        "returnType": return_type,
+                        "itemName": item_name,
+                        "returnedQuantity": returned_quantity,
+                        "currentDate": current_date,
+                        "currentTime": current_time,
+                        "transactionID": transID,
+                        "status": "returned to supplier",
+                        "negaIntDate": nega_int_date,
+                        "currentUser": request.session['username'],
+                        "customer": transaction[transaction_key]["customer"],
+                    }
+
+                    db.child("Return").push(return_data)
+
+                data_update = [item for index, item in enumerate(items_bought)]
+
+                new_total_price = calculate_total_price(data_update)
+                update_data = {
+                    "itemsBought": data_update,
+                    "totalPrice": new_total_price,
+                    "change": transaction[transaction_key]["payment"] - new_total_price,
+                }
+
+                db.child("TransactionLog").child(transaction_key).update(update_data)
+
+                return JsonResponse({"message": "Items have been successfully added to the return!"})
+            else:
+                errors = dict(form.errors)
+                return JsonResponse({"error": "Invalid input data. Please check the provided values.", "form_errors": errors}, status=400)
         else:
-            return JsonResponse({"message": "Items have been successfully added to the return!"})
+            return JsonResponse({"error": "Invalid request method. Only POST requests are allowed."}, status=400)
         
     except Exception as e:
         error_message = f"An error occurred while processing the return: {str(e)}"
