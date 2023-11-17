@@ -1160,11 +1160,11 @@ def UserList(request):
 
 class AddUserForm(forms.Form):
     username = forms.CharField(
-        max_length=100,
+        max_length=15,
         min_length=3,
         error_messages={
             'min_length': 'Username must be at least 3 characters long.',
-            'max_length': 'Username cannot be more than 100 characters long.',
+            'max_length': 'Username cannot be more than 15 characters long.',
         }
     )
     email = forms.EmailField(
@@ -1215,7 +1215,6 @@ class AddUserForm(forms.Form):
         # Check if password and confirm password match
         if password and confirmpass and password != confirmpass:
             self.add_error('confirmpass', 'Password and Confirm Password do not match.')
-
 
 def AddUser(request):
     try:
@@ -1293,36 +1292,97 @@ def SearchUser(request):
         request.session['userKey'] = userKey
         return JsonResponse(userData)
 
-def SaveUser(request):
-    if request.method == 'POST':
-        status = request.POST.get('status')
-        username = request.POST.get('username')
-        role = request.POST.get('role')
-        contact = request.POST.get('contact')
-
-        convert_status = False
-        if status == "true":
-            convert_status = True
-
-        userKey = request.session['userKey']
-
-        image_file = request.FILES.get('image')
-
-        userData = db.child("Users").child(userKey).get().val()
-        if image_file is not None:
-            storage.child("user_profiles/" + userData["userID"]).put(image_file)
-            userData["imgsrc"] = getImageURL("user_profiles/", userData["userID"])
-
-        updatedData = {
-            "username" : username,
-            "role" : role,
-            "contact" :contact,
-            "status" : convert_status,
-            "imgsrc" : userData["imgsrc"],
+class EditUserForm(forms.Form):
+    username = forms.CharField(
+        max_length=15,
+        min_length=3,
+        error_messages={
+            'min_length': 'Username must be at least 3 characters long.',
+            'max_length': 'Username cannot be more than 15 characters long.',
         }
-        db.child("Users").child(userKey).update(updatedData)
+    )
+    contact = forms.CharField(
+        max_length=11,
+        min_length=11,
+        error_messages={
+            'min_length': 'Contact number must be 11 digits long.',
+            'max_length': 'Contact number must be 11 digits long.',
+        }
+    )
+
+    role = forms.CharField(
+        error_messages={
+            'required': 'Role is required.',
+        }
+    )
     
-        return HttpResponse("updated")
+    status = forms.TypedChoiceField(
+        coerce=lambda x: x == 'True',  # Convert 'True' and 'False' strings to actual booleans
+        choices=((True, 'True'), (False, 'False')),
+        error_messages={
+            'invalid_choice': 'Select a valid status (True or False).',
+        }
+    )
+
+    def clean_role(self):
+        role = self.cleaned_data.get('role')
+        allowed_roles = ['Admin', 'Manager', 'Cashier']
+        if role not in allowed_roles:
+            raise forms.ValidationError('Invalid role. Allowed values are: ' + ', '.join(allowed_roles))
+        return role
+    
+def SaveUser(request):
+    try:
+        if request.method == 'POST':
+            form = EditUserForm(request.POST)
+
+            if form.is_valid():
+                data = form.cleaned_data
+
+                userKey = request.session['userKey']
+                userData = db.child("Users").child(userKey).get().val()
+
+                image_file = request.FILES.get('image')
+                imgsrc = userData["imgsrc"]
+
+                if image_file is not None:
+                    file_extension = get_file_extension(image_file.name)
+                    if file_extension == '.gif' or is_image(image_file):
+                        storage.child("user_profiles/" + userData["userID"]).put(image_file)
+                        imgsrc = getImageURL("user_profiles/", userData["userID"])
+                    else:
+                        error_message = "Invalid file format."
+                        return JsonResponse({"message": "Invalid data", "errors": {"file": [error_message]}}, status=400)
+
+                username = data['username']
+                contact = data['contact']
+                role = data['role']
+                status = data['status']
+
+                updatedData = {
+                    "username": username,
+                    "role": role,
+                    "contact": contact,
+                    "status": status,
+                    "imgsrc": imgsrc,
+                }
+                db.child("Users").child(userKey).update(updatedData)
+
+                return JsonResponse({"message": "User updated successfully"})
+            else:
+                # Form is not valid, you can access the custom error messages
+                errors = {
+                    'username': form.errors.get('username', [])[0] if 'username' in form.errors else None,
+                    'contact': form.errors.get('contact', [])[0] if 'contact' in form.errors else None,
+                    'role': form.errors.get('role', [])[0] if 'role' in form.errors else None,
+                    'status': form.errors.get('status', [])[0] if 'status' in form.errors else None,
+                    # Add other fields as needed
+                }
+                # Filter out None values
+                errors = {key: value for key, value in errors.items() if value is not None}
+                return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
 
 def restore_data(request):
     if request.method == 'POST':

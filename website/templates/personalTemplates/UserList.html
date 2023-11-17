@@ -413,12 +413,13 @@
     e.preventDefault();
 
     const checkbox = document.getElementById("toggle").checked;
+    const statusValue = checkbox ? "True" : "False";
 
     var csrfToken = $("input[name=csrfmiddlewaretoken]").val();
     var formData = new FormData();
 
     formData.append("image", $("#editImageFile")[0].files[0]);
-    formData.append("status", checkbox);
+    formData.append("status", statusValue);
     formData.append("username", $("#editUsername").val());
     formData.append("role", $("#editRoles").val());
     formData.append("contact", $("#editContact").val());
@@ -433,29 +434,65 @@
       headers: {
         "X-CSRFToken": csrfToken,
       },
-      success: function (message) {
+      success: function (response) {
+        // Handle success
         closePopUp("editUserForm");
         $("#editUsername").val("");
-        $("#editRole").val("");
         $("#editEmail").val("");
         $("#editContact").val("");
 
-        alert(message);
+        // Display success message
+        $("#success-message").text(response.message);
+        $(".success-alert").addClass("show");
+        $(".success-alert").removeClass("hide");
+        $(".success-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".success-alert").removeClass("show");
+          $(".success-alert").addClass("hide");
+        }, 5000);
       },
       error: function (xhr, textStatus, errorThrown) {
         try {
           var errorResponse = JSON.parse(xhr.responseText);
-          if (errorResponse.error) {
-            alert("Error: " + errorResponse.error);
+
+          if (errorResponse.errors) {
+            // Handle validation errors
+            var firstErrorField = Object.keys(errorResponse.errors)[0];
+            var errorMessage = errorResponse.errors[firstErrorField];
+            $("#error-message").text("Error: " + errorMessage);
+            $(".error-alert").addClass("show");
+            $(".error-alert").removeClass("hide");
+            $(".error-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".error-alert").removeClass("show");
+              $(".error-alert").addClass("hide");
+            }, 5000);
           } else {
-            alert("An unexpected error occurred.");
+            // Handle generic error
+            $("#error-message").text("An unexpected error occurred.");
+            $(".error-alert").addClass("show");
+            $(".error-alert").removeClass("hide");
+            $(".error-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".error-alert").removeClass("show");
+              $(".error-alert").addClass("hide");
+            }, 5000);
           }
         } catch (e) {
-          alert("An unexpected error occurred.");
+          // Handle parsing error
+          $("#error-message").text("An unexpected error occurred.");
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
         }
       },
     });
   });
+
   function closeAddUser() {
     closePopUp("addUserForm");
     $("#imageFile").val("");
