@@ -1,0 +1,152 @@
+{% extends 'navBar.html'%} {%load static%} {% block PageContents%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+
+<main>
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-symbols-sharp">menu</span>
+      </button>
+
+      <div class="theme-toggler">
+        <span class="material-symbols-sharp">light_mode</span>
+        <span class="material-symbols-sharp active">dark_mode</span>
+      </div>
+
+      <div class="profile">
+        <div class="info">
+          <p>Hi, <b>{{User}}</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+
+        <div class="profile-photo">
+          <img id="userProfile" alt="user" src="{{imageURL}}" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <h1>{{Title}}</h1>
+
+  <div class="TableContents">
+    <table id="achiveTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Date Deleted</th>
+          <th>Restore</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in BinList.items %}
+        <tr id="{{key}}0">
+          <td>{{value.binData.ID}}</td>
+          <td>{{value.binData.itemName}}</td>
+          <td>{{value.binData.date}}</td>
+          <td class="success" id="{{key}}">
+            <span class="material-symbols-outlined"> restore_from_trash </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  $("#achiveTable tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    restoreData(data);
+  });
+
+  function restoreData(dataKey) {
+    $.ajax({
+      type: "POST",
+      url: '{% url "RestoreData" %}',
+      data: {
+        dataKey: dataKey,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (message) {
+        alert(message);
+      },
+    });
+  }
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onChildAdded,
+    onChildRemoved,
+    query,
+    startAt,
+    push,
+    child,
+    orderByKey,
+  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKBm5kuT0f-hwVg3ecC6SjZTE4MMxfRi4",
+    authDomain: "maxweb-5ea84.firebaseapp.com",
+    databaseURL:
+      "https://maxweb-5ea84-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "maxweb-5ea84",
+    storageBucket: "maxweb-5ea84.appspot.com",
+    messagingSenderId: "765328893873",
+    appId: "1:765328893873:web:9546126eb532e9165fff90",
+  };
+  const app = initializeApp(firebaseConfig);
+
+  const db = getDatabase();
+  const reference = ref(db, "RecycleBin/");
+
+  let dataID;
+
+  const archiveTableContents = $("#achiveTable");
+
+  const datatable = archiveTableContents.DataTable({
+    info: false,
+    order: [[1, "asc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3] },
+      { orderable: false, targets: [0, 3] },
+    ],
+    lengthMenu: [
+      [10, 25],
+      [10, 25],
+    ],
+    createdRow: (row, data, index) => {
+      $(row).find("td:last-child").addClass("success");
+      $(row).find("td:last-child").attr("id", dataID);
+    },
+  });
+
+  function createTableRowData(transData) {
+    return [
+      transData.binData.ID,
+      transData.binData.itemName,
+      transData.binData.date,
+      "<span class='material-symbols-outlined'> restore_from_trash </span>",
+    ];
+  }
+
+  let now = push(child(ref(db), "RecycleBin")).key;
+  const queryData = query(reference, orderByKey(), startAt(now));
+  onChildAdded(queryData, (data) => {
+    dataID = data.key;
+    const newRowData = createTableRowData(data.val());
+    datatable.row.add(newRowData).node().id = data.key + "0";
+    datatable.draw(false);
+  });
+
+  onChildRemoved(reference, (data) => {
+    datatable
+      .row($("#" + data.key + "0"))
+      .remove()
+      .draw(false);
+  });
+</script>
+{% endblock PageContents%}

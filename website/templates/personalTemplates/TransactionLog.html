@@ -1,0 +1,1039 @@
+{% extends 'navBar.html'%} {%load static%} {% block PageContents%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+<link
+  href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  .transDetails {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-background);
+    border: 3px solid var(--color-dark);
+    border-radius: var(--border-radius-1);
+    padding: 15px;
+    display: none;
+  }
+
+  .reportTables button {
+    padding: 10px;
+    background-color: var(--color-white);
+    color: var(--color-dark);
+    cursor: pointer;
+  }
+
+  .closeButton {
+    float: right;
+    background-color: var(--color-background);
+    color: var(--color-dark);
+    cursor: pointer;
+  }
+
+  .transDetails .reportTables {
+    display: grid;
+    grid-template-columns: 80% 20%;
+  }
+
+  .transLabels textarea {
+    width: 100%;
+    font-family: "Poppins", sans-serif;
+    border-radius: var(--border-radius-1);
+  }
+
+  .transDetails table {
+    background: var(--color-white);
+    width: 100%;
+    height: 100%;
+    padding: var(--card-padding);
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: all 300ms ease;
+    border-radius: var(--border-radius-1);
+  }
+  .transDetails table tbody td {
+    height: 2.8rem;
+    border-bottom: 1px solid var(--color-light);
+    color: var(--color-dark-variant);
+  }
+
+  .tableFixHead {
+    overflow-y: auto;
+    height: 20rem;
+    margin-right: 10px;
+  }
+
+  .reportTables .tableFixHead {
+    overflow-y: auto;
+    height: 30rem;
+    margin-right: 10px;
+  }
+
+  .tableFixHead thead th {
+    position: sticky;
+    top: 0px;
+  }
+  .transLabels {
+    font-size: 15px;
+    gap: 5x;
+  }
+
+  .downloadForm input {
+    background: var(--color-white);
+    color: var(--color-dark);
+    box-sizing: border-box;
+    border-radius: var(--border-radius-1);
+    width: 100%;
+    text-align: center;
+    padding: 5px;
+    margin-bottom: 5px;
+    font-family: "Poppins", sans-serif;
+  }
+
+  /* Sales Report Buttons */
+  .downloadForm button {
+    border-radius: var(--border-radius-1);
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+  }
+  .submitBT {
+    background-color: green;
+  }
+  .downloadBT {
+    background: rgb(116, 116, 86);
+  }
+  .closeBT {
+    background-color: red;
+  }
+
+  .chartHolder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 100px;
+  }
+
+  .chartBorder {
+    background: var(--color-white);
+    padding: var(--card-padding);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--box-shadow);
+  }
+
+  .tableFixHead img {
+    height: 5rem;
+    width: 5rem;
+
+    display: block;
+    margin: 0 auto;
+  }
+</style>
+
+<main>
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-symbols-sharp">menu</span>
+      </button>
+
+      <div class="theme-toggler">
+        <span class="material-symbols-sharp">light_mode</span>
+        <span class="material-symbols-sharp active">dark_mode</span>
+      </div>
+
+      <div class="profile">
+        <div class="info">
+          <p>Hi, <b>{{User}}</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+
+        <div class="profile-photo">
+          <img id="userProfile" alt="user" src="{{imageURL}}" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <h1>{{Title}}</h1>
+  <div class="TableContents">
+    <div class="chartHolder">
+      <div style="width: 35%" class="chartBorder">
+        <canvas id="weeklySales" height="100" width="100"></canvas>
+      </div>
+      <div style="width: 35%" class="chartBorder">
+        <canvas id="topItems" height="100" width="100"></canvas>
+      </div>
+    </div>
+
+    <br />
+    <br />
+
+    <table id="reportTable">
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Void</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in TransactionList.items %}
+        <tr id="{{key}}0">
+          <td>{{value.transactionID}}</td>
+          <td>{{value.currentDate}}</td>
+          <td>{{value.currentTime}}</td>
+          <td>{{value.currentUser}}</td>
+          <td class="success">{{value.status}}</td>
+          <td>{{value.totalPrice}}</td>
+          <td class="danger" id="{{key}}">
+            <span class="material-symbols-outlined"> block </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div id="transactionContents" class="transDetails">
+  <button class="closeButton" onclick="closeTransactionDetails()">
+    <span class="material-symbols-outlined"> close </span>
+  </button>
+  <h2 style="text-align: center">Void Transaction</h2>
+  <br />
+  <div class="transLabels">
+    <b> Transaction ID: </b> <span id="transactionID"></span><br />
+    <b> Customer: </b> <span id="customer"></span><br />
+    <b> Date: </b> <span id="date"></span><br />
+    <b> Time: </b> <span id="time"></span><br />
+    <b> Status: </b> <span id="status" class="success"></span><br />
+    <b> Remarks: </b> <span id="remarks"></span><br />
+    <textarea
+      id="remarksText"
+      cols="30"
+      rows="2"
+      style="resize: none"
+      required
+    ></textarea>
+  </div>
+  <br />
+  <div class="tableFixHead">
+    <table id="detailsTable">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Item Name</th>
+          <th>Quantity</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+  <div class="form-buttons">
+    <button onclick="voidTransaction()">Save</button>
+    <button onclick="closePopUp('transactionContents')">Cancel</button>
+  </div>
+</div>
+
+{% if role != "Cashier" %}
+<div class="transDetails" id="salesReport">
+  <button class="closeButton">
+    <span
+      class="material-symbols-outlined"
+      onclick="closePopUp('salesReport', 'reportBody')"
+    >
+      close
+    </span>
+  </button>
+  <h1 style="text-align: center">Sales Report</h1>
+  <div class="reportTables">
+    <div class="tableFixHead">
+      <table id="reportContents">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+    <div class="downloadForm">
+      <form id="getSalesReport">
+        <label for="startDate">Start Date:</label>
+        <input type="date" min="2023-1-1" id="startDate" required />
+        <label for="endDate">End Date:</label>
+        <input type="date" min="2023-1-1" id="endDate" required />
+        <br />
+        <br />
+        <button type="submit" class="submitBT">Submit</button>
+      </form>
+      <button class="closeBT" onclick="closePopUp('salesReport', 'reportBody')">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="float" onclick="openPopUp('salesReport')">
+  <span class="material-symbols-outlined circle-icon"> share_windows </span>
+</div>
+
+{% endif %}
+
+<ul hidden id="itemNameList">
+  {% for key, value in topItemSold.items %}
+  <li>{{value.itemName}}</li>
+  {% endfor %}
+</ul>
+
+<ul hidden id="totalSoldList">
+  {% for key, value in topItemSold.items %}
+  <li>{{value.totalSold}}</li>
+  {% endfor %}
+</ul>
+
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"
+  integrity="sha512-sW/w8s4RWTdFFSduOTGtk4isV1+190E/GghVffMA9XczdJ2MDzSzLEubKAs5h0wzgSJOQTRYyaz73L3d6RtJSg=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+></script>
+
+{% if role != "Cashier" %}
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<script>
+  (function () {
+    const labelsTopItems = [];
+    const dataTopItems = [];
+    const itemNameList = $("#itemNameList li");
+    for (let item of itemNameList) {
+      labelsTopItems.push($(item).text());
+    }
+
+    const totalSoldList = $("#totalSoldList li");
+    for (let totalSoldItem of totalSoldList) {
+      dataTopItems.push($(totalSoldItem).text());
+    }
+
+    new Chart(document.getElementById("topItems"), {
+      type: "bar",
+      data: {
+        labels: labelsTopItems,
+        datasets: [
+          {
+            label: "Top 5 best sellers",
+            data: dataTopItems,
+            backgroundColor: [
+              "#3498db",
+              "#2ecc71",
+              "#e74c3c",
+              "#9b59b6",
+              "#e67e22",
+              "#f1c40f",
+              "#1abc9c",
+            ],
+          },
+        ],
+      },
+    });
+  })();
+
+  (function () {
+    const dataWeeklySales = JSON.parse("{{ labels }}");
+    for (let x = 0; x < dataWeeklySales.length; x++) {
+      let convertedDate =
+        dataWeeklySales[x].toString().substring(0, 2) +
+        "-" +
+        dataWeeklySales[x].toString().substring(2);
+      dataWeeklySales[x] = convertedDate;
+    }
+
+    new Chart(document.getElementById("weeklySales"), {
+      type: "bar",
+      data: {
+        labels: dataWeeklySales,
+        datasets: [
+          {
+            label: "Weekly Sales",
+            data: JSON.parse("{{ data }}"),
+            backgroundColor: [
+              "#3498db",
+              "#2ecc71",
+              "#e74c3c",
+              "#9b59b6",
+              "#e67e22",
+              "#f1c40f",
+              "#1abc9c",
+            ],
+          },
+        ],
+      },
+    });
+  })();
+
+  $("#reportTable tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    viewTransactionDetails(data);
+  });
+
+  function closeTransactionDetails() {
+    $("#transactionID").text("");
+    $("#customer").text("");
+    $("#date").text("");
+    $("#time").text("");
+    $("#status").text("");
+    $("#remarks").text("");
+    $("#remarksText").val("");
+
+    $("#transactionContents").hide();
+  }
+
+  function closePopup(id, tableBodyID) {
+    $("#" + id).hide();
+
+    const tableBody = document.getElementById(tableBodyID);
+    if (tableBody != null) {
+      tableBody.remove();
+    }
+  }
+
+  function openPopup(id) {
+    $("#" + id).show();
+  }
+
+  function insertDataToTable(value, key, idValue) {
+    const td = document.createElement("td");
+    $(td).text(value);
+    if (key != null) {
+      td.setAttribute("id", key);
+    }
+    if (idValue != null) {
+      td.setAttribute("value", idValue);
+    }
+    return td;
+  }
+
+  function createTbody(id, appendTo, totalID, columnCount) {
+    const tbody = document.createElement("tbody");
+    tbody.setAttribute("id", id);
+
+    const tr = document.createElement("tr");
+
+    for (let x = 0; x < columnCount; x++) {
+      tr.appendChild(insertDataToTable());
+    }
+
+    if (columnCount > 0) {
+      tr.appendChild(insertDataToTable("", totalID));
+      tbody.appendChild(tr);
+    }
+    document.querySelector(appendTo).append(tbody);
+  }
+
+  function viewTransactionDetails(transactionID) {
+    $.ajax({
+      type: "POST",
+      url: '{% url "TransactionDetails" %}',
+      data: {
+        transID: transactionID,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (transactionDetails) {
+        const tableBody = document.getElementById("tableBodyContents");
+        if (tableBody != null) {
+          tableBody.remove();
+        }
+        $("#transactionID").text(transactionDetails["transactionID"]);
+        $("#customer").text(transactionDetails["customer"]);
+        $("#currentUser").text(transactionDetails["currentUser"]);
+        $("#date").text(transactionDetails["currentDate"]);
+        $("#time").text(transactionDetails["currentTime"]);
+        $("#status").text(transactionDetails["status"]);
+
+        createTbody("tableBodyContents", "#detailsTable");
+
+        let itemsBought = transactionDetails["itemsBought"];
+        for (let i = 0; i < itemsBought.length; i++) {
+          const tr = document.createElement("tr");
+
+          const img = document.createElement("img");
+          img.src = itemsBought[i]["imgsrc"];
+          img.alt = "image";
+
+          const td = document.createElement("td");
+          td.appendChild(img);
+
+          tr.appendChild(td);
+          tr.appendChild(insertDataToTable(itemsBought[i]["itemName"]));
+          tr.appendChild(insertDataToTable(itemsBought[i]["itemQuantity"]));
+
+          let itemPriceFloat;
+          if (itemsBought[i]["itemPrice"] !== "REFUNDED") {
+            itemPriceFloat = parseFloat(itemsBought[i]["itemPrice"]);
+          } else {
+            itemPriceFloat = itemsBought[i]["itemPrice"];
+          }
+          tr.appendChild(insertDataToTable(itemPriceFloat));
+
+          $("#detailsTable tbody").prepend(tr);
+        }
+        // const tax = document.createElement("tr");
+        // tax.appendChild(insertDataToTable(""));
+        // tax.appendChild(insertDataToTable(""));
+        // tax.appendChild(
+        //   insertDataToTable("TAX(12%):   " + transactionDetails["tax"])
+        // );
+
+        const totalCell = document.createElement("tr");
+        totalCell.appendChild(insertDataToTable(""));
+        totalCell.appendChild(insertDataToTable(""));
+        totalCell.appendChild(insertDataToTable(""));
+        totalCell.appendChild(
+          insertDataToTable("TOTAL:   " + transactionDetails["totalPrice"])
+        );
+
+        const payment = document.createElement("tr");
+        payment.appendChild(insertDataToTable(""));
+        payment.appendChild(insertDataToTable(""));
+        payment.appendChild(insertDataToTable(""));
+        payment.appendChild(
+          insertDataToTable("Cash:   " + transactionDetails["payment"])
+        );
+
+        const change = document.createElement("tr");
+        change.appendChild(insertDataToTable(""));
+        change.appendChild(insertDataToTable(""));
+        change.appendChild(insertDataToTable(""));
+        change.appendChild(
+          insertDataToTable("Change:   " + transactionDetails["change"])
+        );
+
+        // $("#detailsTable tbody").append(tax);
+        $("#detailsTable tbody").append(totalCell);
+        $("#detailsTable tbody").append(payment);
+        $("#detailsTable tbody").append(change);
+
+        $("#transactionContents").show();
+      },
+    });
+  }
+
+  const reportTable = $("#reportContents");
+
+  const reportDatatable = reportTable.DataTable({
+    order: [[1, "desc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3, 4] },
+      { orderable: false, targets: [0] },
+    ],
+    lengthMenu: [
+      [10, 25],
+      [10, 25],
+    ],
+    dom: "Bfrtip",
+    buttons: ["csv", "excel", "pdf", "print"],
+  });
+
+  $(document).on("submit", "#getSalesReport", function (e) {
+    e.preventDefault();
+    let total = 0;
+    $.ajax({
+      type: "POST",
+      url: '{% url "GetSalesReport" %}',
+      data: {
+        startDate: $("#startDate").val(),
+        endDate: $("#endDate").val(),
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (response) {
+        // Handle successful response
+        // Clear and draw the reportDatatable
+        reportDatatable.clear().draw();
+
+        // Iterate over each sale in the response
+        Object.values(response).forEach((sale) => {
+          const { transactionID, currentDate, customer, itemsBought } = sale;
+
+          // Iterate over each item bought in the sale
+          itemsBought.forEach(({ itemName, itemQuantity, pricePerPiece }) => {
+            // Add rows to the reportDatatable based on item quantity
+            if (itemQuantity !== "REFUNDED") {
+              Array.from({ length: itemQuantity }, () => {
+                total += pricePerPiece;
+
+                reportDatatable.row
+                  .add([
+                    transactionID,
+                    currentDate,
+                    customer,
+                    itemName,
+                    pricePerPiece,
+                  ])
+                  .draw(false);
+              });
+            } else {
+              reportDatatable.row
+                .add([
+                  transactionID,
+                  currentDate,
+                  customer,
+                  itemName,
+                  itemQuantity,
+                ])
+                .draw(false);
+            }
+          });
+        });
+
+        // Calculate and add the total row to the reportDatatable
+        const convertedTotal = Math.round(total * 100) / 100;
+        reportDatatable.row
+          .add(["", "", "", "TOTAL", convertedTotal])
+          .draw(false);
+      },
+      error: function (xhr, status, error) {
+        let errorMessage = "An error occurred";
+        if (xhr.responseJSON && xhr.responseJSON.error) {
+          errorMessage += ": " + xhr.responseJSON.error;
+        }
+        $("#error-message").text(errorMessage);
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
+      },
+    });
+  });
+
+  function voidTransaction() {
+    var remarks = $("#remarksText").val().trim();
+    if (remarks !== "") {
+      $.ajax({
+        type: "POST",
+        url: '{% url "VoidTransaction" %}',
+        data: {
+          remarks: remarks,
+          csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+        },
+        success: function (data) {
+          if (data.hasOwnProperty("message")) {
+            // Success case
+            $("#success-message").text(data.message);
+            $(".success-alert").addClass("show");
+            $(".success-alert").removeClass("hide");
+            $(".success-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".success-alert").removeClass("show");
+              $(".success-alert").addClass("hide");
+            }, 5000);
+            closeTransactionDetails();
+          } else if (data.hasOwnProperty("error")) {
+            // Error case
+            $("#error-message").text("Error: " + data.error);
+            $(".error-alert").addClass("show");
+            $(".error-alert").removeClass("hide");
+            $(".error-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".error-alert").removeClass("show");
+              $(".error-alert").addClass("hide");
+            }, 5000);
+          }
+        },
+        error: function () {
+          // Handle other unexpected errors
+          $("#error-message").text("Error: Unexpected Error");
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
+        },
+      });
+    } else {
+      $("#error-message").text("Error: Please include remarks!");
+      $(".error-alert").addClass("show");
+      $(".error-alert").removeClass("hide");
+      $(".error-alert").addClass("showAlert");
+      setTimeout(function () {
+        $(".error-alert").removeClass("show");
+        $(".error-alert").addClass("hide");
+      }, 5000);
+    }
+  }
+</script>
+{% else %}
+<script>
+  (function () {
+    const labelsTopItems = [];
+    const dataTopItems = [];
+    const itemNameList = $("#itemNameList li");
+    for (let item of itemNameList) {
+      labelsTopItems.push($(item).text());
+    }
+
+    const totalSoldList = $("#totalSoldList li");
+    for (let totalSoldItem of totalSoldList) {
+      dataTopItems.push($(totalSoldItem).text());
+    }
+
+    new Chart(document.getElementById("topItems"), {
+      type: "bar",
+      data: {
+        labels: labelsTopItems,
+        datasets: [
+          {
+            label: "Top 5 best sellers",
+            data: dataTopItems,
+            backgroundColor: [
+              "#3498db",
+              "#2ecc71",
+              "#e74c3c",
+              "#9b59b6",
+              "#e67e22",
+              "#f1c40f",
+              "#1abc9c",
+            ],
+          },
+        ],
+      },
+    });
+  })();
+
+  (function () {
+    const dataWeeklySales = JSON.parse("{{ labels }}");
+    for (let x = 0; x < dataWeeklySales.length; x++) {
+      let convertedDate =
+        dataWeeklySales[x].toString().substring(0, 2) +
+        "-" +
+        dataWeeklySales[x].toString().substring(2);
+      dataWeeklySales[x] = convertedDate;
+    }
+
+    new Chart(document.getElementById("weeklySales"), {
+      type: "bar",
+      data: {
+        labels: dataWeeklySales,
+        datasets: [
+          {
+            label: "Weekly Sales",
+            data: JSON.parse("{{ data }}"),
+            backgroundColor: [
+              "#3498db",
+              "#2ecc71",
+              "#e74c3c",
+              "#9b59b6",
+              "#e67e22",
+              "#f1c40f",
+              "#1abc9c",
+            ],
+          },
+        ],
+      },
+    });
+  })();
+
+  $("#reportTable tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    viewTransactionDetails(data);
+  });
+
+  function closeTransactionDetails() {
+    $("#transactionID").text("");
+    $("#customer").text("");
+    $("#date").text("");
+    $("#time").text("");
+    $("#status").text("");
+    $("#remarks").text("");
+    $("#remarksText").val("");
+
+    $("#transactionContents").hide();
+  }
+
+  function closePopup(id, tableBodyID) {
+    $("#" + id).hide();
+
+    const tableBody = document.getElementById(tableBodyID);
+    if (tableBody != null) {
+      tableBody.remove();
+    }
+  }
+
+  function openPopup(id) {
+    $("#" + id).show();
+  }
+
+  function insertDataToTable(value, key, idValue) {
+    const td = document.createElement("td");
+    $(td).text(value);
+    if (key != null) {
+      td.setAttribute("id", key);
+    }
+    if (idValue != null) {
+      td.setAttribute("value", idValue);
+    }
+    return td;
+  }
+
+  function createTbody(id, appendTo, totalID, columnCount) {
+    const tbody = document.createElement("tbody");
+    tbody.setAttribute("id", id);
+
+    const tr = document.createElement("tr");
+
+    for (let x = 0; x < columnCount; x++) {
+      tr.appendChild(insertDataToTable());
+    }
+
+    if (columnCount > 0) {
+      tr.appendChild(insertDataToTable("", totalID));
+      tbody.appendChild(tr);
+    }
+    document.querySelector(appendTo).append(tbody);
+  }
+
+  function viewTransactionDetails(transactionID) {
+    $.ajax({
+      type: "POST",
+      url: '{% url "TransactionDetails" %}',
+      data: {
+        transID: transactionID,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (transactionDetails) {
+        const tableBody = document.getElementById("tableBodyContents");
+        if (tableBody != null) {
+          tableBody.remove();
+        }
+        $("#transactionID").text(transactionDetails["transactionID"]);
+        $("#customer").text(transactionDetails["customer"]);
+        $("#currentUser").text(transactionDetails["currentUser"]);
+        $("#date").text(transactionDetails["currentDate"]);
+        $("#time").text(transactionDetails["currentTime"]);
+        $("#status").text(transactionDetails["status"]);
+
+        createTbody("tableBodyContents", "#detailsTable");
+
+        let itemsBought = transactionDetails["itemsBought"];
+        for (let i = 0; i < itemsBought.length; i++) {
+          const tr = document.createElement("tr");
+
+          const img = document.createElement("img");
+          img.src = itemsBought[i]["imgsrc"];
+          img.alt = "image";
+
+          const td = document.createElement("td");
+          td.appendChild(img);
+
+          tr.appendChild(td);
+          tr.appendChild(insertDataToTable(itemsBought[i]["itemName"]));
+          tr.appendChild(insertDataToTable(itemsBought[i]["itemQuantity"]));
+
+          let itemPriceFloat;
+          if (itemsBought[i]["itemPrice"] !== "REFUNDED") {
+            itemPriceFloat = parseFloat(itemsBought[i]["itemPrice"]);
+          } else {
+            itemPriceFloat = itemsBought[i]["itemPrice"];
+          }
+          tr.appendChild(insertDataToTable(itemPriceFloat));
+
+          $("#detailsTable tbody").prepend(tr);
+        }
+        // const tax = document.createElement("tr");
+        // tax.appendChild(insertDataToTable(""));
+        // tax.appendChild(insertDataToTable(""));
+        // tax.appendChild(
+        //   insertDataToTable("TAX(12%):   " + transactionDetails["tax"])
+        // );
+
+        const totalCell = document.createElement("tr");
+        totalCell.appendChild(insertDataToTable(""));
+        totalCell.appendChild(insertDataToTable(""));
+        totalCell.appendChild(insertDataToTable(""));
+        totalCell.appendChild(
+          insertDataToTable("TOTAL:   " + transactionDetails["totalPrice"])
+        );
+
+        const payment = document.createElement("tr");
+        payment.appendChild(insertDataToTable(""));
+        payment.appendChild(insertDataToTable(""));
+        payment.appendChild(insertDataToTable(""));
+        payment.appendChild(
+          insertDataToTable("Cash:   " + transactionDetails["payment"])
+        );
+
+        const change = document.createElement("tr");
+        change.appendChild(insertDataToTable(""));
+        change.appendChild(insertDataToTable(""));
+        change.appendChild(insertDataToTable(""));
+        change.appendChild(
+          insertDataToTable("Change:   " + transactionDetails["change"])
+        );
+
+        // $("#detailsTable tbody").append(tax);
+        $("#detailsTable tbody").append(totalCell);
+        $("#detailsTable tbody").append(payment);
+        $("#detailsTable tbody").append(change);
+
+        $("#transactionContents").show();
+      },
+    });
+  }
+
+  function voidTransaction() {
+    var remarks = $("#remarksText").val().trim();
+    if (remarks !== "") {
+      $.ajax({
+        type: "POST",
+        url: '{% url "VoidTransaction" %}',
+        data: {
+          remarks: remarks,
+          csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+        },
+        success: function (data) {
+          if (data.hasOwnProperty("message")) {
+            // Success case
+            $("#success-message").text(data.message);
+            $(".success-alert").addClass("show");
+            $(".success-alert").removeClass("hide");
+            $(".success-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".success-alert").removeClass("show");
+              $(".success-alert").addClass("hide");
+            }, 5000);
+            closeTransactionDetails();
+          } else if (data.hasOwnProperty("error")) {
+            // Error case
+            $("#error-message").text("Error: " + data.error);
+            $(".error-alert").addClass("show");
+            $(".error-alert").removeClass("hide");
+            $(".error-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".error-alert").removeClass("show");
+              $(".error-alert").addClass("hide");
+            }, 5000);
+          }
+        },
+        error: function () {
+          // Handle other unexpected errors
+          $("#error-message").text("Error: Unexpected Error");
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
+        },
+      });
+    } else {
+      $("#error-message").text("Error: Please include remarks!");
+      $(".error-alert").addClass("show");
+      $(".error-alert").removeClass("hide");
+      $(".error-alert").addClass("showAlert");
+      setTimeout(function () {
+        $(".error-alert").removeClass("show");
+        $(".error-alert").addClass("hide");
+      }, 5000);
+    }
+  }
+</script>
+{% endif %}
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onChildAdded,
+    onChildRemoved,
+    query,
+    startAt,
+    push,
+    child,
+    orderByKey,
+  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKBm5kuT0f-hwVg3ecC6SjZTE4MMxfRi4",
+    authDomain: "maxweb-5ea84.firebaseapp.com",
+    databaseURL:
+      "https://maxweb-5ea84-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "maxweb-5ea84",
+    storageBucket: "maxweb-5ea84.appspot.com",
+    messagingSenderId: "765328893873",
+    appId: "1:765328893873:web:9546126eb532e9165fff90",
+  };
+  const app = initializeApp(firebaseConfig);
+
+  const db = getDatabase();
+  const reference = ref(db, "TransactionLog/");
+
+  const transactionTableContents = $("#reportTable");
+
+  let dataID;
+  const datatable = transactionTableContents.DataTable({
+    info: false,
+    order: [[1, "desc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3, 4, 5, 6] },
+      { orderable: false, targets: [0, 4, 6] },
+    ],
+    lengthMenu: [
+      [10, 25],
+      [10, 25],
+    ],
+    createdRow: (row, data, index) => {
+      $(row).find("td:eq(4)").addClass("success");
+      $(row).find("td:last-child").addClass("danger");
+      $(row).find("td:last-child").attr("id", dataID);
+    },
+  });
+
+  function createTableRowData(transData) {
+    return [
+      transData.transactionID,
+      transData.currentDate,
+      transData.currentTime,
+      transData.currentUser,
+      transData.status,
+      transData.totalPrice,
+      "<span class='material-symbols-outlined'> block </span>",
+    ];
+  }
+
+  let now = push(child(ref(db), "TransactionLog")).key;
+  const queryData = query(reference, orderByKey(), startAt(now));
+  onChildAdded(queryData, (data) => {
+    dataID = data.key;
+    const newRowData = createTableRowData(data.val());
+    datatable.row.add(newRowData).node().id = data.key + "0";
+    datatable.draw(false);
+  });
+
+  onChildRemoved(reference, (data) => {
+    datatable
+      .row($("#" + data.key + "0"))
+      .remove()
+      .draw(false);
+  });
+</script>
+{% endblock PageContents%}

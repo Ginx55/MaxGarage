@@ -1,0 +1,863 @@
+{%load static%}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@48,400,0,0"
+    />
+
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'css/navBarCSS.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'css/notif.css' %}"
+    />
+
+    <!-- jQuery -->
+    <script
+      src="https://code.jquery.com/jquery-3.5.1.js"
+      integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Font Awesome -->
+    <script src="https://use.fontawesome.com/3a2eaf6206.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+
+    <!-- DataTables CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.css"
+    />
+
+    <!-- DataTables JavaScript -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
+
+    <title>{{Title}}</title>
+
+    <style>
+      select {
+        height: 30px;
+        padding: 5px;
+      }
+
+      .addExpiryBtn {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .addExpiryBtn p {
+        text-decoration: underline;
+        color: #41f1b6;
+      }
+
+      .addExpiryBtn span {
+        font-size: 1.5rem;
+        color: #41f1b6;
+      }
+
+      .expiryList {
+        background-color: var(--color-dark);
+        border-color: red;
+        margin-top: 1rem;
+        padding: 5px;
+      }
+
+      .expiryList b {
+        color: var(--color-background);
+      }
+      .expiryList span {
+        color: var(--color-background);
+      }
+
+      .expiryButtons {
+        float: right;
+      }
+      .expiryButtons span {
+        font-size: 1.3rem;
+      }
+
+      .scroll {
+        height: 8rem;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      .vertically-aligned {
+        line-height: 100%;
+        vertical-align: middle;
+      }
+
+      .margin {
+        margin-left: 50px;
+      }
+
+      .add-item-image {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        padding: 0.5rem;
+      }
+
+      .add-item-image label {
+        cursor: pointer;
+      }
+
+      .add-item-image-holder {
+        text-align: center;
+        padding: 3%;
+        border: thin solid black;
+        height: 11.5rem;
+        width: 100%;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .additem-scroll {
+        height: 42rem;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      .img {
+        height: 11.5rem;
+        width: 100%;
+        background-color: white;
+        padding: 3%;
+        display: none;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      .button-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px; /* Adjust margin as needed */
+      }
+
+      .button-container button {
+        margin-left: 5px; /* Adjust margin between buttons as needed */
+      }
+
+      .button-container button {
+        padding: 0.45rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="success-alert alert hide">
+      <span class="fas fa-check-circle"></span>
+      <span class="msg" id="success-message">SUCCESS</span>
+      <div class="close-btn">
+        <span class="fas fa-times"></span>
+      </div>
+    </div>
+
+    <div class="error-alert alert hide">
+      <span class="fas fa-exclamation-circle"></span>
+      <span class="msg" id="error-message">ERROR</span>
+      <div class="close-btn">
+        <span class="fas fa-times"></span>
+      </div>
+    </div>
+
+    <div class="warning-alert alert hide">
+      <span class="fas fa-exclamation-circle"></span>
+      <span class="msg" id="warning-message">About to Expire!</span>
+      <div class="close-btn">
+        <span class="fas fa-times"></span>
+      </div>
+    </div>
+
+    <div class="container">
+      <aside>
+        <!-- logo -->
+        <div class="top">
+          <div class="logo">
+            <img src="{%static 'img/logo.png'%}" alt="logo" />
+            <h2>Max Garage Motorparts</h2>
+          </div>
+
+          <div class="close" id="close-btn">
+            <span class="material-symbols-outlined">close</span>
+          </div>
+        </div>
+
+        <!-- side bars -->
+        <div class="sidebar">
+          {% if role != "Cashier" %}
+          <a
+            href="{% url 'Dashboard' %}"
+            class="{% if Title == 'Dashboard'%} active {%endif%}"
+          >
+            <span class="material-symbols-outlined">grid_view</span>
+            <h3>Dashboard</h3>
+          </a>
+          {% endif %}
+
+          <div class="dropdown">
+            <a>
+              <span class="material-symbols-outlined">paid</span>
+              <h3>Sales</h3>
+            </a>
+
+            <div
+              class="{% if salesClass %} margin {% else %} dropdown-content {% endif %}"
+            >
+              <a
+                href="{% url 'PurchaseTransaction' %}"
+                class="{% if Title == 'Purchase Transaction'%} active {%endif%}"
+              >
+                <span class="material-symbols-outlined">point_of_sale</span>
+                <h3>Purchase Transaction</h3>
+              </a>
+
+              <a
+                href="{% url 'TransactionLog' %}"
+                class="{% if Title == 'Transaction Log'%} active {%endif%}"
+              >
+                <span class="material-symbols-outlined">insights</span>
+                <h3>Transaction Log</h3>
+              </a>
+              <a
+                href="{% url 'VoidedTransactions' %}"
+                class="{% if Title == 'Voided Transactions'%} active {%endif%}"
+              >
+                <span class="material-symbols-outlined">block</span>
+                <h3>Voided Transactions</h3>
+              </a>
+            </div>
+          </div>
+
+          <div class="dropdown">
+            <a>
+              <span class="material-symbols-outlined">inventory_2</span>
+              <h3>Inventory</h3>
+            </a>
+
+            <div
+              class="{% if itemClass %} margin {% else %} dropdown-content {% endif %}"
+              id="dropList"
+            >
+              <a
+                href="{% url 'ItemList' %}"
+                class="{% if Title == 'Item List'%} active {%endif%}"
+              >
+                <span class="material-symbols-outlined">lists</span>
+                <h3>Item List</h3>
+              </a>
+              <a
+                href="{% url 'CriticalQuantities' %}"
+                class="{% if Title == 'Critical Quantities'%} active {%endif%}"
+              >
+                <span class="material-symbols-outlined">lists</span>
+                <h3>Critical Quantities</h3>
+              </a>
+              <a
+                href="{% url 'AboutToExpire' %}"
+                class="{% if Title == 'About To Expire'%} active {%endif%}"
+              >
+                <span class="material-symbols-outlined">lists</span>
+                <h3>About To Expire</h3>
+              </a>
+            </div>
+          </div>
+
+          <a
+            href="{% url 'Return' %}"
+            class="{% if Title == 'Return'%} active {%endif%}"
+          >
+            <span class="material-symbols-outlined">undo</span>
+            <h3>Return</h3>
+          </a>
+
+          {% if role != "Cashier" %} {% if role == "Admin" %}
+          <a
+            href="{% url 'SystemActivities' %}"
+            class="{% if Title == 'System Activities'%} active {%endif%}"
+          >
+            <span class="material-symbols-outlined">report </span>
+            <h3>Audit Trail</h3>
+          </a>
+          {% endif %}
+          <a
+            href="{% url 'RecycleBin' %}"
+            class="{% if Title == 'Archive'%} active {%endif%}"
+          >
+            <span class="material-symbols-outlined">archive </span>
+            <h3>Archive</h3>
+          </a>
+          <a onclick="openPopUp('generateBarcodeForm')">
+            <span class="material-symbols-outlined">barcode </span>
+            <h3>Generate Barcode</h3>
+          </a>
+          {% if role == "Admin" %}
+          <a
+            href="{% url 'UserList' %}"
+            class="{% if Title == 'User List'%} active {%endif%}"
+          >
+            <span class="material-symbols-outlined">person </span>
+            <h3>User List</h3>
+          </a>
+          {% endif %}
+          <a onclick="openItem()">
+            <span class="material-symbols-outlined">add</span>
+            <h3>Add Product</h3>
+          </a>
+          {% endif %}
+
+          <a href="{% url 'LogIn' %}">
+            <span class="material-symbols-outlined">logout</span>
+            <h3>Logout</h3>
+          </a>
+        </div>
+      </aside>
+      {% block PageContents%} {% endblock PageContents%}
+    </div>
+
+    <!-- generate barcode -->
+    <div class="form-popup" id="generateBarcodeForm" style="width: 20%">
+      <form class="form-container" id="barcodeForm">
+        <h1>Generate Barcode</h1>
+
+        <input
+          type="text"
+          placeholder="Barcode"
+          id="barcodeText"
+          required
+          style="width: 100%"
+        />
+
+        <br />
+        <br />
+        <div id="barcodePreview">
+          <svg id="barcode" class="barcodeImage"></svg>
+        </div>
+        <br />
+        <div class="form-buttons">
+          <button type="submit" class="generateBTN">Generate</button>
+          <button type="button" id="downloadBarcode" class="downloadBTN">
+            Download
+          </button>
+          <button
+            type="button"
+            class="cancelBTN"
+            onclick="closePopUp('generateBarcodeForm')"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- add item -->
+    <div class="form-popup additem-scroll" id="addItemForm" style="width: 55%">
+      <form class="form-container" id="itemForm">
+        {% csrf_token %}
+        <h1 style="text-align: center">Add Product</h1>
+
+        <div id="off_screen_preview" style="position: absolute; left: -1000px">
+          <svg id="off_screen_barcode" class="barcodeImage"></svg>
+        </div>
+
+        <div class="add-item-image">
+          <div>
+            <img id="itemImgPreview" alt="preview" class="img" />
+            <div class="add-item-image-holder" id="itemImageHolder">
+              <label for="itemImageFile">
+                Select Image <br />
+                <i class="fa fa-2x fa-camera"></i>
+                <input
+                  id="itemImageFile"
+                  type="file"
+                  accept=".jpg, .jpeg, .png, .gif"
+                />
+                <br />
+              </label>
+            </div>
+          </div>
+          <div>
+            <div>
+              <p>Barcode</p>
+              <input
+                type="text"
+                placeholder="Barcode"
+                id="itemID"
+                style="width: 85%"
+                required
+              />
+              <span
+                id="generate_download"
+                class="material-symbols-outlined vertically-aligned"
+                style="font-size: 2.5rem"
+                >barcode
+              </span>
+            </div>
+            <div>
+              <p>Item Name</p>
+              <input
+                type="text"
+                placeholder="Item Name"
+                id="itemName"
+                required
+              />
+            </div>
+            <div>
+              <p>Item Code</p>
+              <input
+                type="text"
+                placeholder="Item Code"
+                id="itemCode"
+                disabled
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="add-item-image">
+          <div>
+            <div>
+              <p>Quantity</p>
+              <input
+                type="number"
+                placeholder="Item Quantity"
+                id="itemQuantity"
+                required
+              />
+            </div>
+            <div>
+              <p>Critical Quantity</p>
+              <input
+                type="number"
+                placeholder="Critical QTY"
+                id="itemCriticalQuantity"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <div>
+              <p>Item Price</p>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="Item Price"
+                id="itemPrice"
+                required
+              />
+            </div>
+            <div>
+              <p>Max Quantity</p>
+              <input
+                type="number"
+                placeholder="Max Quantity"
+                id="itemMaxQuantity"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="addExpiryBtn" id="expiryBtn" onclick="openExpiry()">
+            <p>Add expiration date</p>
+            &nbsp; <span class="material-symbols-outlined"> add_circle </span>
+          </div>
+
+          <div id="addExpiryInput" hidden>
+            <div class="add-item-image">
+              <div>
+                <p>Expiration Date</p>
+                <input
+                  type="date"
+                  min="2022-12-31"
+                  name="expiryDate"
+                  id="expiryDate"
+                />
+              </div>
+              <div>
+                <p>Notify before</p>
+                <input type="number" placeholder="Days" id="notifyDays" />
+              </div>
+            </div>
+
+            <div class="button-container">
+              <button type="button" onclick="addExpiryDate()">Add</button>
+              <button type="button" onclick="closeExpiry()">Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div id="expiredHolder" class="expiryList">
+          <b>Expiration Dates:</b>
+          <div id="expiredList" class="scroll"></div>
+        </div>
+
+        <div class="form-buttons">
+          <button type="submit">Save</button>
+          <button type="button" onclick="cancelClick()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </body>
+
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
+  <script src="{% static 'js/JsBarcode.all.min.js' %}"></script>
+  <script type="text/javascript">
+    function openPopUp(id) {
+      $("#" + id).show();
+    }
+
+    function closePopUp(id) {
+      $("#" + id).hide();
+    }
+
+    $("#itemName").on("input", function () {
+      // Get the input value
+      var inputValue = $(this).val();
+
+      // Remove vowels and update the input value
+      $("#itemCode").val(removeVowels(inputValue));
+    });
+
+    function removeVowels(word) {
+      if (word.length === 0) {
+        return word;
+      }
+
+      var firstLetter = word.charAt(0);
+      var restOfWord = word.slice(1);
+      var withoutVowels = restOfWord.replace(/[aeiouAEIOU]/g, "");
+
+      return firstLetter + withoutVowels;
+    }
+
+    $(document).on("submit", "#itemForm", function (e) {
+      e.preventDefault();
+
+      let expiryDates = [];
+      let counter = 0;
+
+      let expirydate;
+      $("#expiredList *")
+        .filter(":input")
+        .each(function () {
+          counter += 1;
+          if (counter === 1) {
+            expirydate = $(this).val();
+          }
+
+          if (counter === 2) {
+            counter = 0;
+            let notify = $(this).val() === "" ? 0 : $(this).val();
+
+            let expiry = {
+              date: expirydate,
+              notify: notify,
+            };
+            expiryDates.push(expiry);
+          }
+        });
+
+      var csrfToken = $("input[name=csrfmiddlewaretoken]").val();
+      var formData = new FormData();
+
+      formData.append("image", $("#itemImageFile")[0].files[0]);
+      formData.append("itemID", $("#itemID").val());
+      formData.append("itemName", $("#itemName").val());
+      formData.append("itemPrice", $("#itemPrice").val());
+      formData.append("itemQuantity", $("#itemQuantity").val());
+      formData.append("itemMaxQuantity", $("#itemMaxQuantity").val());
+      formData.append("itemCriticalQuantity", $("#itemCriticalQuantity").val());
+      formData.append("expiryDates", JSON.stringify(expiryDates));
+      formData.append("csrfmiddlewaretoken", csrfToken);
+
+      $.ajax({
+        type: "POST",
+        url: '{% url "AddItem" %}',
+        data: formData,
+        contentType: false,
+        processData: false,
+        headers: {
+          "X-CSRFToken": csrfToken,
+        },
+        success: function (response) {
+          $("#itemImageFile").val("");
+          $("#itemImgPreview").attr("src", "");
+
+          $("#success-message").text(response.message);
+          $(".success-alert").addClass("show");
+          $(".success-alert").removeClass("hide");
+          $(".success-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".success-alert").removeClass("show");
+            $(".success-alert").addClass("hide");
+          }, 5000);
+
+          cancelClick();
+        },
+        error: function (xhr, status, response) {
+          var response = xhr.responseJSON;
+
+          var errorMessage = response.message || "An error occurred.";
+          if (response.errors) {
+            Object.keys(response.errors).forEach(function (fieldName) {
+              var fieldError = response.errors[fieldName];
+              errorMessage += " " + fieldError;
+            });
+          }
+
+          $("#error-message").text(errorMessage);
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 10000);
+        },
+      });
+    });
+
+    $(document).on("submit", "#barcodeForm", function (e) {
+      e.preventDefault();
+      generateBarcode("barcode", $("#barcodeText").val());
+    });
+
+    function generateBarcode(elementID, data) {
+      JsBarcode("#" + elementID, data);
+    }
+
+    document
+      .getElementById("generate_download")
+      .addEventListener("click", function () {
+        generateBarcode("off_screen_barcode", $("#itemID").val());
+        html2canvas(document.getElementById("off_screen_preview")).then(
+          function (canvas) {
+            var anchorTag = document.createElement("a");
+            document.body.appendChild(anchorTag);
+            anchorTag.download = "barcode.jpg";
+            anchorTag.href = canvas.toDataURL();
+            anchorTag.target = "_blank";
+            anchorTag.click();
+          }
+        );
+      });
+
+    document
+      .getElementById("downloadBarcode")
+      .addEventListener("click", function () {
+        html2canvas(document.getElementById("barcodePreview")).then(function (
+          canvas
+        ) {
+          var anchorTag = document.createElement("a");
+          document.body.appendChild(anchorTag);
+          anchorTag.download = "barcode.jpg";
+          anchorTag.href = canvas.toDataURL();
+          anchorTag.target = "_blank";
+          anchorTag.click();
+        });
+      });
+
+    function openExpiry() {
+      $("#expiryBtn").hide();
+      openPopUp("addExpiryInput");
+    }
+
+    function closeExpiry() {
+      $("#expiryBtn").show();
+      $("#expiryDate").val("");
+      $("#notifyDays").val("");
+      closePopUp("addExpiryInput");
+    }
+
+    function addExpiryDate() {
+      const div = document.createElement("div");
+      // BUTTONS
+      const edittext = document.createTextNode("edit");
+      const span1 = document.createElement("span");
+      span1.className = "material-symbols-outlined";
+      span1.append(edittext);
+      span1.style.color = "green";
+
+      span1.addEventListener("click", function () {
+        $(this)
+          .closest("div")
+          .next("br")
+          .next("div")
+          .children("input")
+          .removeAttr("disabled");
+        $(this)
+          .closest("div")
+          .next("br")
+          .next("div")
+          .next("div")
+          .children("input")
+          .removeAttr("disabled");
+      });
+
+      const deletetext = document.createTextNode("delete");
+      const span2 = document.createElement("span");
+      span2.className = "material-symbols-outlined";
+      span2.append(deletetext);
+      span2.style.color = "red";
+
+      span2.addEventListener("click", function () {
+        $(this).closest("div").parent("div").remove();
+      });
+
+      // EXPIRY BUTTONS
+      const expiryButtons = document.createElement("div");
+      expiryButtons.className = "expiryButtons";
+      expiryButtons.append(span1);
+      expiryButtons.append(span2);
+
+      // EXPIRY CONTENTS
+      const expirydiv = document.createElement("div");
+      const expiryb = document.createElement("b");
+      const expiryinput = document.createElement("input");
+      expiryinput.style.width = "60%";
+      expiryinput.type = "date";
+      expiryinput.disabled = true;
+
+      $(expiryb).text("EXP:");
+      $(expiryinput).val($("#expiryDate").val());
+      expirydiv.append(expiryb);
+      expirydiv.append(expiryinput);
+
+      const notifydiv = document.createElement("div");
+      const notifyb = document.createElement("b");
+      const notifyinput = document.createElement("input");
+      const days = document.createElement("span");
+
+      $(days).text("days");
+      $(notifyb).text("Notify before: ");
+      $(notifyinput).val($("#notifyDays").val());
+      notifydiv.append(notifyb);
+      notifydiv.append(notifyinput);
+      notifydiv.append(days);
+      notifyinput.style.width = "30%";
+      notifyinput.type = "number";
+      notifyinput.disabled = true;
+
+      const br = document.createElement("br");
+      div.append(expiryButtons);
+      div.append(br);
+      div.append(expirydiv);
+      div.append(notifydiv);
+
+      $("#expiredList").prepend(div);
+      closeExpiry();
+    }
+
+    function cancelClick() {
+      closePopUp("addItemForm");
+      $("#itemImageHolder").show();
+      $("#itemImgPreview").hide();
+      $("#itemImageFile").val("");
+      $("#itemImgPreview").attr("src", "");
+      $(
+        "#itemID, #itemName, #itemPrice, #itemQuantity, #itemMaxQuantity, #itemCriticalQuantity, #expiryDate, #notifyDays"
+      ).val("");
+      closeExpiry();
+      const element = document.getElementById("expiredList");
+      if (element != null) {
+        element.remove();
+      }
+    }
+
+    function openItem() {
+      openPopUp("addItemForm");
+      const element = document.getElementById("expiredList");
+      if (element == null) {
+        const div = document.createElement("div");
+        div.setAttribute("id", "expiredList");
+        div.className = "scroll";
+
+        $("#expiredHolder").append(div);
+      }
+    }
+
+    document.getElementById("itemImageFile").addEventListener("change", (e) => {
+      const imgDetails = document.getElementById("itemImageFile").files[0];
+      if (imgDetails) {
+        let name = imgDetails.name;
+        let type = imgDetails.type;
+        let size = imgDetails.size + "bytes";
+        previewImage(imgDetails, "itemImgPreview");
+        $("#itemImageHolder").hide();
+        $("#itemImgPreview").show();
+      } else {
+        imagePreview.src = "";
+        console.error("Please select a picture");
+      }
+    });
+
+    $("#itemImgPreview").on("click", function () {
+      $("#itemImageFile").trigger("click");
+    });
+
+    function previewImage(imgD, id) {
+      const reader = new FileReader();
+      const imagePreview = document.getElementById(id);
+      // PREVIEW
+      reader.addEventListener("load", function () {
+        imagePreview.src = reader.result;
+      });
+
+      // CHECK IF THERE IS SELECTION
+      if (imgD) {
+        // CHECK IF THE FILE IS AN IMAGE
+        if (
+          imgD.type === "image/jpeg" ||
+          imgD.type == "image/jpg" ||
+          imgD.type == "image/gif" ||
+          imgD.type == "image/png"
+        ) {
+          // CONVERTS FILE TO BASE 64
+          reader.readAsDataURL(imgD);
+        } else {
+          errorMessage.innerText = "File type should be an image";
+          imagePreview.src = "";
+        }
+      }
+      // IF NO IMAGE
+      else {
+        imagePreview.src = "";
+      }
+    }
+
+    $(".close-btn").click(function () {
+      $(".alert").removeClass("show");
+      $(".alert").addClass("hide");
+    });
+  </script>
+
+  <script type="module"></script>
+  <script src="{%static 'js/navBarScript.js'%}"></script>
+</html>

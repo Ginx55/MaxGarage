@@ -1,0 +1,498 @@
+{% extends 'navBar.html'%} {%load static%} {% block PageContents%}
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{% static 'css/Dashboard.css' %}"
+/>
+<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+
+<style>
+  /* General Styles */
+  .transDetails {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-background);
+    border: 3px solid var(--color-dark);
+    border-radius: var(--border-radius-1);
+    padding: 15px;
+    display: none;
+  }
+
+  .closeButton {
+    float: right;
+    background-color: var(--color-background);
+    color: var(--color-dark);
+    cursor: pointer;
+  }
+
+  /* Image Styles */
+  .tableFixHead img {
+    height: 5rem;
+    width: 5rem;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Table Styles */
+  .transDetails table {
+    background: var(--color-white);
+    width: 100%;
+    height: 100%;
+    padding: var(--card-padding);
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: all 300ms ease;
+    border-radius: var(--border-radius-1);
+  }
+
+  .transDetails table tbody td {
+    height: 2.8rem;
+    border-bottom: 1px solid var(--color-light);
+    color: var(--color-dark-variant);
+  }
+
+  /* Scrollable Table Head Styles */
+  .tableFixHead {
+    overflow-y: auto;
+    height: 18rem;
+    margin-right: 10px;
+  }
+
+  .tableFixHead thead th {
+    position: sticky;
+    top: 0px;
+  }
+
+  /* Label Styles */
+  .transLabels {
+    font-size: 15px;
+    gap: 5px;
+  }
+</style>
+<main>
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-symbols-sharp">menu</span>
+      </button>
+
+      <div class="theme-toggler">
+        <span class="material-symbols-sharp">light_mode</span>
+        <span class="material-symbols-sharp active">dark_mode</span>
+      </div>
+
+      <div class="profile">
+        <div class="info">
+          <p>Hi, <b>{{User}}</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+
+        <div class="profile-photo">
+          <img id="userProfile" alt="user" src="{{imageURL}}" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboardColumn">
+    <div>
+      <h1 class="topMargin">{{Title}}</h1>
+      <div class="insights">
+        <div class="sales">
+          <a href="{% url 'TransactionLog' %}">
+            <canvas id="weeklySales" width="130" height="130"></canvas>
+          </a>
+        </div>
+
+        <div class="expenses">
+          <a href="{% url 'TransactionLog' %}">
+            <canvas id="topItems" width="130" height="130"></canvas>
+          </a>
+        </div>
+
+        <div class="income">
+          <a href="{% url 'Return' %}">
+            <span class="material-symbols-outlined">assignment_return</span>
+            <div class="middle">
+              <div class="left">
+                <h3>Returned items</h3>
+                <h1 id="returnedItems">0</h1>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="critical">
+          <a href="{% url 'CriticalQuantities' %}">
+            <span
+              class="material-symbols-outlined"
+              style="background-color: #f40606"
+              >warning</span
+            >
+            <div class="middle">
+              <div class="left">
+                <h3>Critical stock</h3>
+                <h1 id="criticalStock"></h1>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="overstocked">
+          <a href="{% url 'ItemList' %}">
+            <span
+              class="material-symbols-outlined"
+              style="background-color: #f8d912"
+              >error</span
+            >
+            <div class="left">
+              <h3>Overstocked</h3>
+              <h1 id="overStocked"></h1>
+            </div>
+          </a>
+        </div>
+
+        <div class="expired">
+          <a href="{% url 'AboutToExpire' %}">
+            <span
+              class="material-symbols-outlined"
+              style="background-color: #e08300"
+              >priority_high</span
+            >
+            <div class="left">
+              <h3>About to expire</h3>
+              <h1 id="aboutToExpire"></h1>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="TableContents">
+        <h2>Recent Transactions</h2>
+
+        <table style="width: 100%" id="reportTable">
+          <thead>
+            <tr>
+              <th>Transaction ID</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, value in TransactionList.items %}
+            <tr id="{{key}}0">
+              <td>{{value.transactionID}}</td>
+              <td>{{value.currentDate}}</td>
+              <td>{{value.currentTime}}</td>
+              <td class="success">{{value.status}}</td>
+              <td>{{value.totalPrice}}</td>
+              <td class="primary" id="{{key}}">
+                <span class="material-symbols-outlined">report </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <a href="{% url 'TransactionLog' %}" style="text-align: center"
+          >Show All</a
+        >
+      </div>
+    </div>
+
+    <div>
+      <div class="right">
+        <div class="recentUpdates">
+          <a href="{% url 'SystemActivities' %}">
+            <h2>Recent Updates</h2>
+            <div class="updates" id="updateData">
+              {% for key, value in ActivityList.items %}
+              <div class="update">
+                <div class="profile-photo">
+                  <img src="{{value.imageURL}}" alt="profile" />
+                </div>
+                <div class="message">
+                  <p><b>{{value.currentUser}}</b>{{value.actionsMade}}</p>
+                  <small class="text-muted">2 Minutes Ago</small>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </a>
+        </div>
+
+        <div class="addItem">
+          <br />
+          <h2>Add Product</h2>
+          <div class="addProduct" onclick="openItem()">
+            <div>
+              <span class="material-symbols-sharp">add</span>
+              <h3>Add Product</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="transactionContents" class="transDetails">
+  <button class="closeButton" onclick="closeTransactionDetails()">
+    <span class="material-symbols-outlined"> close </span>
+  </button>
+  <h2 style="text-align: center">Void Transaction</h2>
+  <br />
+  <div class="transLabels">
+    <b> Transaction ID: </b> <span id="transactionID"></span><br />
+    <b> Customer: </b> <span id="customer"></span><br />
+    <b> Date: </b> <span id="date"></span><br />
+    <b> Time: </b> <span id="time"></span><br />
+    <b> Status: </b> <span id="status" class="success"></span><br />
+  </div>
+  <br />
+  <div class="tableFixHead">
+    <table id="detailsTable">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Item Name</th>
+          <th>Quantity</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+</div>
+
+<ul hidden id="itemNameList">
+  {% for key, value in topItemSold.items %}
+  <li>{{value.itemName}}</li>
+  {% endfor %}
+</ul>
+
+<ul hidden id="totalSoldList">
+  {% for key, value in topItemSold.items %}
+  <li>{{value.totalSold}}</li>
+  {% endfor %}
+</ul>
+
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"
+  integrity="sha512-sW/w8s4RWTdFFSduOTGtk4isV1+190E/GghVffMA9XczdJ2MDzSzLEubKAs5h0wzgSJOQTRYyaz73L3d6RtJSg=="
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"
+></script>
+<script type="module" src="{% static 'js/Dashboard.js' %}"></script>
+<script>
+  (function () {
+    const labelsTopItems = [];
+    const dataTopItems = [];
+    const itemNameList = $("#itemNameList li");
+    for (let item of itemNameList) {
+      labelsTopItems.push($(item).text());
+    }
+
+    const totalSoldList = $("#totalSoldList li");
+    for (let totalSoldItem of totalSoldList) {
+      dataTopItems.push($(totalSoldItem).text());
+    }
+
+    new Chart(document.getElementById("topItems"), {
+      type: "bar",
+      data: {
+        labels: labelsTopItems,
+        datasets: [
+          {
+            label: "Top 5 best sellers",
+            data: dataTopItems,
+            backgroundColor: [
+              "#3498db",
+              "#2ecc71",
+              "#e74c3c",
+              "#9b59b6",
+              "#e67e22",
+              "#f1c40f",
+              "#1abc9c",
+            ],
+          },
+        ],
+      },
+    });
+  })();
+
+  (function () {
+    const dataWeeklySales = JSON.parse("{{ labels }}");
+    for (let x = 0; x < dataWeeklySales.length; x++) {
+      let convertedDate =
+        dataWeeklySales[x].toString().substring(0, 2) +
+        "-" +
+        dataWeeklySales[x].toString().substring(2);
+      dataWeeklySales[x] = convertedDate;
+    }
+
+    new Chart(document.getElementById("weeklySales"), {
+      type: "bar",
+      data: {
+        labels: dataWeeklySales,
+        datasets: [
+          {
+            label: "Weekly Sales",
+            data: JSON.parse("{{ data }}"),
+            backgroundColor: [
+              "#3498db",
+              "#2ecc71",
+              "#e74c3c",
+              "#9b59b6",
+              "#e67e22",
+              "#f1c40f",
+              "#1abc9c",
+            ],
+          },
+        ],
+      },
+    });
+  })();
+
+  $("#reportTable tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    viewTransactionDetails(data);
+  });
+
+  function closeTransactionDetails() {
+    $("#transactionID").text("");
+    $("#customer").text("");
+    $("#date").text("");
+    $("#time").text("");
+    $("#status").text("");
+
+    $("#transactionContents").hide();
+  }
+
+  function viewTransactionDetails(transactionID) {
+    $.ajax({
+      type: "POST",
+      url: '{% url "TransactionDetails" %}',
+      data: {
+        transID: transactionID,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (transactionDetails) {
+        const tableBody = document.getElementById("tableBodyContents");
+        if (tableBody != null) {
+          tableBody.remove();
+        }
+        $("#transactionID").text(transactionDetails["transactionID"]);
+        $("#customer").text(transactionDetails["customer"]);
+        $("#currentUser").text(transactionDetails["currentUser"]);
+        $("#date").text(transactionDetails["currentDate"]);
+        $("#time").text(transactionDetails["currentTime"]);
+        $("#status").text(transactionDetails["status"]);
+
+        createTbody("tableBodyContents", "#detailsTable");
+
+        let itemsBought = transactionDetails["itemsBought"];
+        for (let i = 0; i < itemsBought.length; i++) {
+          const tr = document.createElement("tr");
+
+          const img = document.createElement("img");
+          img.src = itemsBought[i]["imgsrc"];
+          img.alt = "image";
+
+          const td = document.createElement("td");
+          td.appendChild(img);
+
+          tr.appendChild(td);
+          tr.appendChild(insertDataToTable(itemsBought[i]["itemName"]));
+          tr.appendChild(insertDataToTable(itemsBought[i]["itemQuantity"]));
+
+          let itemPriceFloat;
+          if (itemsBought[i]["itemPrice"] !== "REFUNDED") {
+            itemPriceFloat = parseFloat(itemsBought[i]["itemPrice"]);
+          } else {
+            itemPriceFloat = itemsBought[i]["itemPrice"];
+          }
+          tr.appendChild(insertDataToTable(itemPriceFloat));
+
+          $("#detailsTable tbody").prepend(tr);
+        }
+        // const tax = document.createElement("tr");
+        // tax.appendChild(insertDataToTable(""));
+        // tax.appendChild(insertDataToTable(""));
+        // tax.appendChild(
+        //   insertDataToTable("TAX(12%):   " + transactionDetails["tax"])
+        // );
+
+        const totalCell = document.createElement("tr");
+        totalCell.appendChild(insertDataToTable(""));
+        totalCell.appendChild(insertDataToTable(""));
+        totalCell.appendChild(insertDataToTable(""));
+        totalCell.appendChild(
+          insertDataToTable("TOTAL:   " + transactionDetails["totalPrice"])
+        );
+
+        const payment = document.createElement("tr");
+        payment.appendChild(insertDataToTable(""));
+        payment.appendChild(insertDataToTable(""));
+        payment.appendChild(insertDataToTable(""));
+        payment.appendChild(
+          insertDataToTable("Cash:   " + transactionDetails["payment"])
+        );
+
+        const change = document.createElement("tr");
+        change.appendChild(insertDataToTable(""));
+        change.appendChild(insertDataToTable(""));
+        change.appendChild(insertDataToTable(""));
+        change.appendChild(
+          insertDataToTable("Change:   " + transactionDetails["change"])
+        );
+
+        // $("#detailsTable tbody").append(tax);
+        $("#detailsTable tbody").append(totalCell);
+        $("#detailsTable tbody").append(payment);
+        $("#detailsTable tbody").append(change);
+
+        $("#transactionContents").show();
+      },
+    });
+  }
+
+  function createTbody(id, appendTo, totalID, columnCount) {
+    const tbody = document.createElement("tbody");
+    tbody.setAttribute("id", id);
+
+    const tr = document.createElement("tr");
+
+    for (let x = 0; x < columnCount; x++) {
+      tr.appendChild(insertDataToTable());
+    }
+
+    if (columnCount > 0) {
+      tr.appendChild(insertDataToTable("", totalID));
+      tbody.appendChild(tr);
+    }
+    document.querySelector(appendTo).append(tbody);
+  }
+
+  function insertDataToTable(value, key, idVal) {
+    const td = document.createElement("td");
+    $(td).text(value);
+    if (key != null) {
+      td.setAttribute("id", key);
+    }
+    if (idVal != null) {
+      td.setAttribute("value", idVal);
+    }
+    return td;
+  }
+
+  function closePopUp(id) {
+    $("#" + id).hide();
+  }
+</script>
+{% endblock PageContents%}

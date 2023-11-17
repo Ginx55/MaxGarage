@@ -1,0 +1,131 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'css/Login.css' %}"
+    />
+
+    <script
+      src="https://code.jquery.com/jquery-3.5.1.js"
+      integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'css/notif.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+
+    <title>LogIn</title>
+  </head>
+  <body>
+    <div class="center">
+      <h1>LogIn</h1>
+      <form id="login-form">
+        {% csrf_token %}
+        <div class="txt_field">
+          <input type="text" name="email" id="email" required />
+          <span></span>
+          <label>Email</label>
+        </div>
+        <div class="txt_field">
+          <input type="password" id="password" name="password" required />
+          <span></span>
+          <label>Password</label>
+        </div>
+
+        <a href="{% url 'ForgotPass' %}">
+          <div class="pass"><small>Forgot Password?</small></div>
+        </a>
+
+        <input type="submit" value="Login" />
+      </form>
+    </div>
+
+    <div class="error-alert alert hide">
+      <span class="fas fa-exclamation-circle"></span>
+      <span class="msg" id="error-message"></span>
+      <div class="close-btn">
+        <span class="fas fa-times"></span>
+      </div>
+    </div>
+
+    <script>
+      $(document).on("submit", "#login-form", function (e) {
+        e.preventDefault();
+
+        $.ajax({
+          type: "POST",
+          url: '{% url "LogIn" %}',
+          data: {
+            email: $("#email").val(),
+            password: $("#password").val(),
+            csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+          },
+          success: function (response) {
+            console.log(response);
+            handleLoginResponse(response);
+          },
+          error: function (error) {
+            handleLoginError(error);
+          },
+        });
+      });
+
+      function handleLoginResponse(response) {
+        if (response.authenticated) {
+          window.location.href = response.redirect_url;
+        } else {
+          $("#error-message").text(response.error_message);
+          $(".alert").addClass("show");
+          $(".alert").removeClass("hide");
+          $(".alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".alert").removeClass("show");
+            $(".alert").addClass("hide");
+          }, 5000);
+        }
+      }
+
+      function handleLoginError(error) {
+        if (error.status === 400) {
+          var response = error.responseJSON;
+          if (
+            response &&
+            response.authenticated === false &&
+            response.error_message
+          ) {
+            console.error("Error:", response.error_message);
+            $("#error-message").text(response.error_message);
+            $(".alert").addClass("show");
+            $(".alert").removeClass("hide");
+            $(".alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".alert").removeClass("show");
+              $(".alert").addClass("hide");
+            }, 5000);
+          } else {
+            console.error("Unexpected Error:", error.responseText);
+          }
+        } else {
+          console.error("Unexpected Error:", error.responseText);
+        }
+      }
+
+      $(".close-btn").click(function () {
+        $(".alert").removeClass("show");
+        $(".alert").addClass("hide");
+      });
+    </script>
+  </body>
+</html>

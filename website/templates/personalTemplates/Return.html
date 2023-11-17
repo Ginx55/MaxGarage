@@ -1,0 +1,821 @@
+{% extends 'navBar.html'%} {%load static%} {% block PageContents%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+<style>
+  .transDetails {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 40%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-background);
+    border: 3px solid var(--color-dark);
+    border-radius: var(--border-radius-1);
+    padding: 15px;
+    display: none;
+  }
+  .transLabels {
+    font-size: 15px;
+    gap: 5x;
+  }
+
+  .form-group {
+    display: flex;
+    align-items: center; /* Vertically align label and input/select */
+    gap: 10px; /* Adjust the gap as needed */
+  }
+
+  .form-group label {
+    font-weight: bold;
+    width: 10.3rem; /* Fixed label width, adjust as needed */
+  }
+
+  .form-group p {
+    font-size: 13px;
+  }
+  .form-group select {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-top: 5px;
+    width: 10rem;
+  }
+  .form-group input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-top: 5px;
+    width: 5.5rem;
+  }
+
+  .closeButton {
+    float: right;
+    background-color: var(--color-background);
+    color: var(--color-dark);
+  }
+  .transDetails table {
+    background: var(--color-white);
+    width: 100%;
+    height: 100%;
+    padding: var(--card-padding);
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: all 300ms ease;
+    border-radius: var(--border-radius-1);
+  }
+  .transDetails table tbody td {
+    height: 2.8rem;
+    border-bottom: 1px solid var(--color-light);
+    color: var(--color-dark-variant);
+  }
+  .tableFixHead {
+    overflow-y: auto;
+    height: 180px;
+    margin-top: 0.5rem;
+  }
+  .tableFixHead thead th {
+    position: sticky;
+    top: 0px;
+  }
+
+  .transLabels input {
+    padding: 3px;
+    border: none;
+    background: #f1f1f1;
+    font-family: "Poppins", sans-serif;
+  }
+
+  .add-to-return-button {
+    text-align: right;
+    margin-top: 10px; /* Add spacing between the form and the button */
+    margin-bottom: 10px;
+  }
+
+  .add-to-return-button button {
+    background-color: var(--color-white);
+    padding: var(--card-padding);
+    color: var(--color-dark);
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .add-to-return-button button:hover {
+    background-color: #232930; /* Darker color on hover */
+  }
+
+  .tableFixHead img {
+    height: 5rem;
+    width: 5rem;
+
+    display: block;
+    margin: 0 auto;
+  }
+</style>
+
+<main>
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-symbols-sharp">menu</span>
+      </button>
+
+      <div class="theme-toggler">
+        <span class="material-symbols-sharp">light_mode</span>
+        <span class="material-symbols-sharp active">dark_mode</span>
+      </div>
+
+      <div class="profile">
+        <div class="info">
+          <p>Hi, <b>{{User}}</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+
+        <div class="profile-photo">
+          <img id="userProfile" alt="user" src="{{imageURL}}" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <h1>{{Title}}</h1>
+  <div class="TableContents">
+    <table id="returnTable">
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Item Name</th>
+          <th>Current User</th>
+          <th>Date</th>
+          <th>Return Type</th>
+          <th>Quantity</th>
+          <th>Status</th>
+          <th>Info</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in ReturnList.items %}
+        <tr id="{{key}}0">
+          <td>{{value.transactionID}}</td>
+          <td>{{value.itemName}}</td>
+          <td>{{value.currentUser}}</td>
+          <td>{{value.currentDate}}</td>
+          <td>{{value.returnType}}</td>
+          <td>{{value.returnedQuantity}}</td>
+          <td
+            class="{% if value.status == 'received'%} success {% else %} danger {%endif%}"
+          >
+            {{value.status}}
+          </td>
+          <td class="primary" id="{{key}}">
+            <span class="material-symbols-outlined">report </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="float" onclick="openTrans()">
+    <span class="material-symbols-outlined circle-icon"> add </span>
+  </div>
+</main>
+
+<div id="transactionContents" class="transDetails">
+  <button class="closeButton" onclick="closeTrans()">
+    <span class="material-symbols-outlined"> close </span>
+  </button>
+  <br />
+  <div class="transLabels">
+    <form id="searchTransaction">
+      {% csrf_token %}
+      <b> Transaction ID: </b> <input type="text" id="transactionID" /><br />
+    </form>
+    <b> Customer: </b> <span id="customer"></span><br />
+    <b> Date: </b> <span id="date"></span><br />
+    <b> Time: </b> <span id="time"></span><br />
+    <b> Status: </b> <span id="status"></span><br />
+  </div>
+
+  <div id="hidden-table" style="display: none">
+    <div class="tableFixHead">
+      <table id="transaction-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Item Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Returned Date</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="addExpiryBtn" onclick="openRemarks()">
+      <p>Add item to return</p>
+      &nbsp; <span class="material-symbols-outlined"> add_circle </span>
+    </div>
+  </div>
+</div>
+
+<div id="add-return" class="transDetails">
+  <button class="closeButton" onclick="closeAddReturn()">
+    <span class="material-symbols-outlined"> close </span>
+  </button>
+  <br />
+  <div class="transLabels">
+    <div class="form-group">
+      <label for="retuned-item-name">Item Name</label>
+      <select id="retuned-item-name"></select>
+    </div>
+    <div class="form-group">
+      <label for="returned-quantity">Returned Quantity</label>
+      <input type="number" id="returned-quantity" />
+      <p>pieces</p>
+    </div>
+    <div class="form-group">
+      <label for="return-type">Return Type</label>
+      <select name="return-type" id="return-type">
+        <option value="Replacement">Replacement</option>
+        <option value="Refund">Refund</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="add-to-return-button">
+    <button id="add-return-btn">Add to Return</button>
+  </div>
+  <div class="tableFixHead">
+    <table id="retuned-list">
+      <thead>
+        <th>Item Name</th>
+        <th>Returned Quantity</th>
+        <th>Return Type</th>
+        <th>Remove</th>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="form-buttons">
+    <form id="save-return">
+      {% csrf_token %}
+      <button type="submit">Save</button>
+      <button type="button" onclick="closeAddReturn()">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<div id="returnContents" class="transDetails">
+  <button class="closeButton" onclick="closeDetails()">
+    <span class="material-symbols-outlined"> close </span>
+  </button>
+  <br />
+  <div class="transLabels">
+    <b> Ref. No.: </b> <span id="refNumber"></span><br />
+    <b> Customer: </b> <span id="customerReturn"></span><br />
+    <b> Item Name: </b> <span id="returnItemName"></span><br />
+    <b> Date: </b> <span id="returnDate"></span><br />
+    <b> Time: </b> <span id="returnTime"></span><br />
+    <b> Quantity: </b> <span id="returnQuantity"></span><br />
+    <b> Return Type: </b> <span id="returntype"></span><br />
+    <b> Status: </b> <span id="returnStatus"></span><br />
+  </div>
+  <form id="itemReceived" class="button-container">
+    <button type="submit">Item arrived</button>
+  </form>
+</div>
+
+<script>
+  const transactionTableContents = $("#transaction-table");
+  const datatable = transactionTableContents.DataTable({
+    info: false,
+    lengthChange: false,
+    order: [[0, "asc"]],
+    iDisplayLength: -1,
+    paging: false,
+    columnDefs: [{ className: "dt-center", targets: [0, 1, 2, 3] }],
+  });
+
+  let rowID = "";
+  const retunedList = $("#retuned-list");
+  const returnedTable = retunedList.DataTable({
+    info: false,
+    lengthChange: false,
+    order: [[1, "asc"]],
+    iDisplayLength: -1,
+    searching: false,
+    paging: false,
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3] },
+      { orderable: false, targets: [0] },
+    ],
+    createdRow: (row, data, index) => {
+      $(row).find("td:last-child").attr("id", rowID);
+    },
+  });
+
+  $(document).on("submit", "#searchTransaction", function (e) {
+    e.preventDefault();
+    datatable.clear().draw();
+    $.ajax({
+      type: "POST",
+      url: '{% url "SearchTransactions" %}',
+      data: {
+        transID: $("#transactionID").val(),
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (transactionDetails) {
+        transactionID = $("#transactionID").val();
+        $("#transactionID").text(transactionDetails["transactionID"]);
+        $("#customer").text(transactionDetails["customer"]);
+        $("#currentUser").text(transactionDetails["currentUser"]);
+        $("#date").text(transactionDetails["currentDate"]);
+        $("#time").text(transactionDetails["currentTime"]);
+        $("#status").text(transactionDetails["status"]);
+
+        $("#hidden-table").show();
+
+        itemsBought = transactionDetails["itemsBought"];
+
+        for (let x = 0; x < itemsBought.length; x++) {
+          const itemName = itemsBought[x]["itemName"];
+          const itemQuantity = itemsBought[x]["itemQuantity"];
+          const itemPrice = itemsBought[x]["itemPrice"];
+          let returnedDate = itemsBought[x]["returnedDate"];
+
+          if (typeof returnedDate === "undefined") {
+            returnedDate = "";
+          }
+
+          datatable.row
+            .add([
+              '<img src="' + itemsBought[x]["imgsrc"] + '" alt="image">',
+              itemName,
+              itemQuantity,
+              itemPrice,
+              returnedDate,
+            ])
+            .draw(false);
+        }
+      },
+      error: function (xhr, status, error) {
+        var response = xhr.responseJSON;
+
+        var errorMessage = response.message || "An error occurred.";
+
+        $("#error-message").text(errorMessage);
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
+      },
+    });
+  });
+
+  document
+    .getElementById("add-return-btn")
+    .addEventListener("click", function () {
+      const selectedOption = $("#retuned-item-name option:selected");
+      const itemName = selectedOption.val();
+      const quantity = selectedOption.attr("data-quantity");
+      const itemID = selectedOption.attr("data-id");
+      const fixedID = selectedOption.attr("id");
+
+      const returnedQuan = Number($("#returned-quantity").val());
+
+      const returnType = $("#return-type option:selected").val();
+      const uid =
+        Date.now().toString(36) + Math.random().toString(36).substr(2);
+      rowID = uid;
+      if (returnedQuan != "") {
+        if (returnedQuan <= quantity) {
+          const temp = returnedTable.row
+            .add([
+              itemName,
+              returnedQuan,
+              returnType,
+              "<span class='material-symbols-outlined danger'>delete</span>",
+            ])
+            .node();
+
+          $(temp).attr("data-itemname", itemName);
+          $(temp).attr("data-quantity", returnedQuan);
+          $(temp).attr("data-id", itemID);
+          $(temp).attr("data-fixedid", fixedID);
+          $(temp).attr("data-returntype", returnType);
+          $(temp).attr("id", uid + "1");
+
+          returnedTable.draw(false);
+
+          const currentQuantity = quantity - returnedQuan;
+          if (currentQuantity <= 0) {
+            selectedOption.remove();
+          } else {
+            selectedOption.attr("data-quantity", currentQuantity);
+          }
+        } else {
+          $("#error-message").text(
+            "Returned quantity should not exceed the bought quantity"
+          );
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
+        }
+      } else {
+        $("#error-message").text("Please include the returned quantity.");
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
+      }
+
+      $("#returned-quantity").val("");
+    });
+
+  let transactionID;
+  $(document).on("submit", "#save-return", function (e) {
+    e.preventDefault();
+    const table = document.getElementById("retuned-list");
+    const itemList = [];
+    for (let x = 1; x < table.rows.length; x++) {
+      const row = table.rows[x];
+      const item = {
+        itemName: $(row).attr("data-itemname"),
+        itemQuantity: $(row).attr("data-quantity"),
+        itemID: $(row).attr("data-id"),
+        fixedID: $(row).attr("data-fixedid"),
+        returnType: $(row).attr("data-returntype"),
+      };
+      itemList.push(item);
+    }
+    const itemListJSON = JSON.stringify(itemList);
+
+    $.ajax({
+      type: "POST",
+      url: '{% url "InsertReturn" %}',
+      data: {
+        transactionID: transactionID,
+        itemList: itemListJSON,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (response) {
+        if (response.message) {
+          // Success case
+          closeAddReturn();
+          closeTrans();
+
+          $("#success-message").text(response.message);
+          $(".success-alert").addClass("show");
+          $(".success-alert").removeClass("hide");
+          $(".success-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".success-alert").removeClass("show");
+            $(".success-alert").addClass("hide");
+          }, 5000);
+        } else {
+          // Unexpected response format
+          $("#error-message").text("Unexpected response from the server");
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 10000);
+        }
+      },
+      error: function (xhr, status, error) {
+        // Error case
+        if (xhr.responseJSON && xhr.responseJSON.error) {
+          $("#error-message").text(xhr.responseJSON.error);
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 10000);
+        } else {
+          $("#error-message").text("An unexpected error occurred: " + error);
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 10000);
+        }
+      },
+    });
+  });
+
+  $("#retuned-list tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    removeElement(data);
+  });
+
+  $("#returnTable tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    viewDetails(data);
+  });
+
+  function openTrans() {
+    document.getElementById("transactionContents").style.display = "block";
+  }
+
+  function closeAddReturn() {
+    $("#add-return").hide();
+    $("#returned-quantity").val("");
+    $("#retuned-item-name").empty();
+    returnedTable.clear().draw();
+  }
+
+  function closeTrans() {
+    $("#transactionID").val("");
+    $("#customer").text("");
+    $("#date").text("");
+    $("#time").text("");
+    $("#status").text("");
+    $("#hidden-table").hide();
+
+    datatable.clear().draw();
+    document.getElementById("transactionContents").style.display = "none";
+  }
+
+  function showForm() {
+    $("#returnForm").show();
+  }
+
+  function closeDetails() {
+    $("#returnContents").hide();
+    $("#refNumber").text("");
+    $("#returnItemName").text("");
+    $("#returnDate").text("");
+    $("#returnTime").text("");
+    $("#returnQuantity").text("");
+    $("#returnStatus").text("");
+  }
+
+  let itemsBought;
+  function openRemarks() {
+    for (let x = 0; x < itemsBought.length; x++) {
+      const option = document.createElement("option");
+      $(option).text(itemsBought[x]["itemName"]);
+      option.setAttribute("value", itemsBought[x]["itemName"]);
+      option.setAttribute("data-quantity", itemsBought[x]["itemQuantity"]);
+      option.setAttribute("data-id", itemsBought[x]["itemID"]);
+      option.setAttribute("id", itemsBought[x]["fixedID"]);
+
+      $("#retuned-item-name").append(option);
+    }
+    $("#add-return").show();
+  }
+
+  function removeElement(key) {
+    const selectedOption = $("#" + key + "1");
+    const itemName = selectedOption.attr("data-itemname");
+    const quantity = selectedOption.attr("data-quantity");
+    const itemID = selectedOption.attr("data-id");
+    const fixedID = selectedOption.attr("data-fixedid");
+
+    const element = document.getElementById(fixedID);
+    if (element != null) {
+      const current = $(element).attr("data-quantity");
+      const added = Number(current) + Number(quantity);
+      $(element).attr("data-quantity", added);
+    } else {
+      const option = document.createElement("option");
+      $(option).text(itemName);
+      option.setAttribute("value", itemName);
+      option.setAttribute("data-quantity", quantity);
+      option.setAttribute("data-id", itemID);
+      option.setAttribute("id", fixedID);
+
+      $("#retuned-item-name").append(option);
+    }
+
+    returnedTable
+      .row($("#" + key + "1"))
+      .remove()
+      .draw(false);
+  }
+
+  function viewDetails(key) {
+    $.ajax({
+      type: "POST",
+      url: '{% url "ReturnDetails" %}',
+      data: {
+        returnKey: key,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (returnDetails) {
+        returnKey = key;
+        let status = returnDetails["status"];
+
+        $("#refNumber").text(returnDetails["transactionID"]);
+        $("#customerReturn").text(returnDetails["customer"]);
+        $("#returnItemName").text(returnDetails["itemName"]);
+        $("#returnDate").text(returnDetails["currentDate"]);
+        $("#returnTime").text(returnDetails["currentTime"]);
+        $("#returnQuantity").text(returnDetails["returnedQuantity"]);
+        $("#returntype").text(returnDetails["returnType"]);
+        $("#returnStatus").text(status);
+        if (status == "returned to supplier") {
+          $("#returnStatus").removeClass("success");
+          $("#returnStatus").addClass("danger");
+          $("#itemReceived").show();
+        } else {
+          $("#returnStatus").removeClass("danger");
+          $("#returnStatus").addClass("success");
+          $("#itemReceived").hide();
+        }
+
+        $("#returnContents").show();
+      },
+      error: function (xhr, status, error) {
+        let errorMessage;
+        if (xhr.responseJSON && xhr.responseJSON.error) {
+          errorMessage = xhr.responseJSON.error;
+        } else {
+          errorMessage = "An unexpected error occurred: " + error;
+        }
+
+        // Handle error and show alert
+        $("#error-message").text(errorMessage);
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
+      },
+    });
+  }
+
+  let returnKey;
+  $(document).on("submit", "#itemReceived", function (e) {
+    e.preventDefault();
+    $.ajax({
+      type: "POST",
+      url: '{% url "ItemReceived" %}',
+      data: {
+        returnKey: returnKey,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (response) {
+        if (response.message) {
+          // Success case
+          $("#success-message").text(response.message);
+          $(".success-alert").addClass("show");
+          $(".success-alert").removeClass("hide");
+          $(".success-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".success-alert").removeClass("show");
+            $(".success-alert").addClass("hide");
+          }, 5000);
+          closeDetails();
+        } else {
+          // Unexpected response format
+          $("#error-message").text("Unexpected response from the server");
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
+        }
+      },
+      error: function (xhr, status, error) {
+        // Error case
+        if (xhr.responseJSON && xhr.responseJSON.error) {
+          $("#error-message").text(xhr.responseJSON.error);
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
+        } else {
+          $("#error-message").text("An unexpected error occurred: " + error);
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
+        }
+      },
+    });
+  });
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onChildChanged,
+    onChildAdded,
+    onChildRemoved,
+    query,
+    startAt,
+    push,
+    child,
+    orderByKey,
+  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKBm5kuT0f-hwVg3ecC6SjZTE4MMxfRi4",
+    authDomain: "maxweb-5ea84.firebaseapp.com",
+    databaseURL:
+      "https://maxweb-5ea84-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "maxweb-5ea84",
+    storageBucket: "maxweb-5ea84.appspot.com",
+    messagingSenderId: "765328893873",
+    appId: "1:765328893873:web:9546126eb532e9165fff90",
+  };
+  const app = initializeApp(firebaseConfig);
+
+  const db = getDatabase();
+  const reference = ref(db, "Return/");
+
+  let dataID;
+
+  const returnTableContents = $("#returnTable");
+  const returnDatatable = returnTableContents.DataTable({
+    info: false,
+    order: [[3, "desc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3, 4, 5, 6, 7] },
+      { orderable: false, targets: [0, 7] },
+    ],
+    lengthMenu: [
+      [10, 25],
+      [10, 25],
+    ],
+    createdRow: (row, data, index) => {
+      $(row).find("td:eq(6)").addClass("danger");
+      $(row).find("td:last-child").addClass("primary");
+      $(row).find("td:last-child").attr("id", dataID);
+    },
+  });
+
+  function createTableRowData(transData) {
+    return [
+      transData.transactionID,
+      transData.itemName,
+      transData.currentUser,
+      transData.currentDate,
+      transData.returnType,
+      transData.returnedQuantity,
+      transData.status,
+      "<span class='material-symbols-outlined'> report </span>",
+    ];
+  }
+
+  let now = push(child(ref(db), "Return")).key;
+  const queryData = query(reference, orderByKey(), startAt(now));
+  onChildAdded(queryData, (data) => {
+    dataID = data.key;
+    const newRowData = createTableRowData(data.val());
+    returnDatatable.row.add(newRowData).node().id = data.key + "0";
+    returnDatatable.draw(false);
+  });
+
+  onChildChanged(reference, (data) => {
+    const row = returnDatatable.row("#" + data.key + "0");
+    const newRowData = createTableRowData(data.val());
+    row.data(newRowData).draw(false);
+
+    const rowElement = $("#" + data.key + "0");
+    if (data.val().status == "return outwards") {
+      rowElement
+        .find("td:eq(6)")
+        .removeClass("danger success")
+        .addClass("warning");
+    } else {
+      rowElement
+        .find("td:eq(6)")
+        .removeClass("danger success")
+        .addClass("success");
+    }
+  });
+</script>
+{% endblock PageContents%}

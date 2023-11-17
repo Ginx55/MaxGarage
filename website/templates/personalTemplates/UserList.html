@@ -1,0 +1,538 @@
+{% extends 'navBar.html'%} {%load static%} {% block PageContents%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+
+<style>
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ff7782;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
+  }
+
+  input:checked + .slider {
+    background-color: #41f1b6;
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px #41f1b6;
+  }
+
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  .userContainer {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    gap: 10px;
+  }
+
+  .userContainer input {
+    margin-bottom: 10px;
+  }
+
+  .img {
+    height: 195px;
+    width: 100%;
+    background-color: white;
+    margin-bottom: 15px;
+    display: none;
+  }
+
+  .role {
+    display: flex;
+    justify-content: center;
+  }
+
+  .role select {
+    height: 30px;
+    padding: 5px;
+  }
+
+  .imageHolder {
+    text-align: center;
+    padding: 3%;
+    border: thin solid black;
+    height: 195px;
+    width: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+
+  label {
+    cursor: pointer;
+  }
+</style>
+<main>
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-symbols-sharp">menu</span>
+      </button>
+
+      <div class="theme-toggler">
+        <span class="material-symbols-sharp">light_mode</span>
+        <span class="material-symbols-sharp active">dark_mode</span>
+      </div>
+
+      <div class="profile">
+        <div class="info">
+          <p>Hi, <b>{{User}}</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+
+        <div class="profile-photo">
+          <img id="userProfile" alt="user" src="{{imageURL}}" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h1>{{Title}}</h1>
+
+  <div class="TableContents">
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Last Login</th>
+          <th>Email</th>
+          <th>Contact Number</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in UserList.items %}
+        <tr id="{{key}}0">
+          <td>{{value.username}}</td>
+          <td>{{value.role}}</td>
+          <td>{{value.lastLogin}}</td>
+          <td>{{value.email}}</td>
+          <td>{{value.contact}}</td>
+          <td class="success" id="{{key}}">
+            <span class="material-symbols-outlined"> edit </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="float" onclick="openPopUp('addUserForm')">
+    <span class="material-symbols-outlined circle-icon"> add </span>
+  </div>
+</main>
+
+<div class="form-popup" id="editUserForm" style="width: 40%">
+  <h1 style="text-align: center">Edit User</h1>
+
+  <div style="text-align: right">
+    <label class="switch">
+      <input type="checkbox" id="toggle" />
+      <span class="slider round"></span>
+    </label>
+  </div>
+
+  <form class="form-container" id="editUser">
+    {% csrf_token %}
+    <div class="userContainer">
+      <div>
+        <div>
+          <img id="editImgPreview" alt="preview" class="img" />
+          <div class="imageHolder" id="editImageHolder">
+            <label for="editImageFile">
+              Select Image <br />
+              <i class="fa fa-2x fa-camera"></i>
+              <input id="editImageFile" type="file" />
+              <br />
+            </label>
+          </div>
+        </div>
+
+        <div class="role">
+          <p>Role:</p>
+          &nbsp;&nbsp;
+          <select name="roles" id="editRoles">
+            <option value="Admin">Admin</option>
+            <option value="Manager">Manager</option>
+            <option value="Cashier">Cashier</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <p>Name:</p>
+        <input type="text" placeholder="Name" id="editUsername" required />
+        <p>Email:</p>
+        <input type="text" placeholder="Email" id="editEmail" disabled />
+        <p>Contact:</p>
+        <input type="text" placeholder="Contact" id="editContact" required />
+      </div>
+    </div>
+    <div class="form-buttons">
+      <button type="submit">Save</button>
+      <button type="button" onclick="closePopUp('editUserForm')">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<div class="form-popup" id="addUserForm" style="width: 40%">
+  <h1 style="text-align: center">Add User</h1>
+  <form class="form-container" id="userForm">
+    {% csrf_token %}
+    <div class="userContainer">
+      <div>
+        <img id="imgPreview" alt="preview" class="img" />
+        <div class="imageHolder" id="imageHolder">
+          <label for="imageFile">
+            Select Image <br />
+            <i class="fa fa-2x fa-camera"></i>
+            <input id="imageFile" type="file" />
+            <br />
+          </label>
+        </div>
+
+        <div class="role">
+          <p>Role:</p>
+          &nbsp;&nbsp;
+          <select name="roles" id="roles">
+            <option value="Admin">Admin</option>
+            <option value="Manager">Manager</option>
+            <option value="Cashier">Cashier</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <p>Name:</p>
+        <input type="text" placeholder="Name" id="username" required />
+        <p>Email:</p>
+        <input type="text" placeholder="Email" id="email" required />
+        <p>Password:</p>
+        <input type="password" placeholder="Password" id="password" required />
+        <p>Contact:</p>
+        <input type="text" placeholder="Contact" id="contact" required />
+      </div>
+    </div>
+    <div class="form-buttons">
+      <button type="submit" value="Save" class="saveBTN">Save</button>
+      <button
+        type="button"
+        class="cancelBTN"
+        onclick="closePopUp('addUserForm')"
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>
+
+<script type="text/javascript">
+  function openPopUp(id) {
+    $("#" + id).show();
+  }
+
+  function closePopUp(id) {
+    $("#" + id).hide();
+  }
+
+  $("#userTable tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    editUser(data);
+  });
+
+  let editImageSrc;
+  function editUser(key) {
+    $.ajax({
+      type: "POST",
+      url: '{% url "SearchUser" %}',
+      data: {
+        userKey: key,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (userData) {
+        if (userData["status"]) {
+          document.getElementById("toggle").checked = true;
+        } else {
+          document.getElementById("toggle").checked = false;
+        }
+        const img = document.getElementById("editImgPreview");
+        if (img.src != null) {
+          $("#editImageHolder").hide();
+          $("#editImgPreview").show();
+        } else {
+          $("#editImageHolder").show();
+          $("#editImgPreview").hide();
+        }
+        $("#editImgPreview").attr("src", userData["imgsrc"]);
+        $("#editUsername").val(userData["username"]);
+        $("#editRoles").val(userData["role"]);
+        $("#editEmail").val(userData["email"]);
+        $("#editContact").val(userData["contact"]);
+        openPopUp("editUserForm");
+
+        editImageSrc = userData["imgsrc"];
+      },
+    });
+  }
+
+  document.getElementById("imageFile").addEventListener("change", (e) => {
+    const imgDetails = document.getElementById("imageFile").files[0];
+    if (imgDetails) {
+      let name = imgDetails.name;
+      let type = imgDetails.type;
+      let size = imgDetails.size + "bytes";
+      previewImage(imgDetails, "imgPreview");
+      $("#imageHolder").hide();
+      $("#imgPreview").show();
+    } else {
+      imagePreview.src = "";
+      console.error("Please select a picture");
+    }
+  });
+
+  function previewImage(imgD, id) {
+    const reader = new FileReader();
+    const imagePreview = document.getElementById(id);
+    // PREVIEW
+    reader.addEventListener("load", function () {
+      imagePreview.src = reader.result;
+    });
+
+    // CHECK IF THERE IS SELECTION
+    if (imgD) {
+      // CHECK IF THE FILE IS AN IMAGE
+      if (
+        imgD.type === "image/jpeg" ||
+        imgD.type == "image/jpg" ||
+        imgD.type == "image/gif" ||
+        imgD.type == "image/png"
+      ) {
+        // CONVERTS FILE TO BASE 64
+        reader.readAsDataURL(imgD);
+      } else {
+        errorMessage.innerText = "File type should be an image";
+        imagePreview.src = "";
+      }
+    }
+    // IF NO IMAGE
+    else {
+      imagePreview.src = "";
+    }
+  }
+
+  document.getElementById("editImageFile").addEventListener("change", (e) => {
+    const imgDetails = document.getElementById("editImageFile").files[0];
+    if (imgDetails) {
+      let name = imgDetails.name;
+      let type = imgDetails.type;
+      let size = imgDetails.size + "bytes";
+      previewImage(imgDetails, "editImgPreview");
+    } else {
+      imagePreview.src = "";
+      console.error("Please select a picture");
+    }
+  });
+
+  $("#editImgPreview").on("click", function () {
+    $("#editImageFile").trigger("click");
+  });
+
+  $("#imgPreview").on("click", function () {
+    $("#imageFile").trigger("click");
+  });
+
+  $(document).on("submit", "#editUser", function (e) {
+    e.preventDefault();
+
+    const checkbox = document.getElementById("toggle").checked;
+
+    var csrfToken = $("input[name=csrfmiddlewaretoken]").val();
+    var formData = new FormData();
+
+    formData.append("image", $("#editImageFile")[0].files[0]);
+    formData.append("status", checkbox);
+    formData.append("username", $("#editUsername").val());
+    formData.append("role", $("#editRoles").val());
+    formData.append("contact", $("#editContact").val());
+    formData.append("csrfmiddlewaretoken", csrfToken);
+
+    $.ajax({
+      type: "POST",
+      url: '{% url "SaveUser" %}',
+      data: formData,
+      contentType: false,
+      processData: false,
+      headers: {
+        "X-CSRFToken": csrfToken,
+      },
+      success: function (message) {
+        closePopUp("editUserForm");
+        $("#editUsername").val("");
+        $("#editRole").val("");
+        $("#editEmail").val("");
+        $("#editContact").val("");
+
+        alert(message);
+      },
+    });
+  });
+
+  $(document).on("submit", "#userForm", function (e) {
+    e.preventDefault();
+
+    var csrfToken = $("input[name=csrfmiddlewaretoken]").val();
+
+    var formData = new FormData();
+    formData.append("image", $("#imageFile")[0].files[0]);
+    formData.append("username", $("#username").val());
+    formData.append("password", $("#password").val());
+    formData.append("role", $("#roles").val());
+    formData.append("email", $("#email").val());
+    formData.append("contact", $("#contact").val());
+    formData.append("csrfmiddlewaretoken", csrfToken);
+
+    $.ajax({
+      type: "POST",
+      url: '{% url "AddUser" %}',
+      data: formData,
+      contentType: false,
+      processData: false,
+      headers: {
+        "X-CSRFToken": csrfToken,
+      },
+      success: function (message) {
+        closePopUp("addUserForm");
+        $("#username").val("");
+        $("#password").val("");
+        $("#role").val("");
+        $("#email").val("");
+        $("#contact").val("");
+
+        alert(message);
+      },
+    });
+  });
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onChildChanged,
+    onChildAdded,
+    query,
+    startAt,
+    push,
+    child,
+    orderByKey,
+  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKBm5kuT0f-hwVg3ecC6SjZTE4MMxfRi4",
+    authDomain: "maxweb-5ea84.firebaseapp.com",
+    databaseURL:
+      "https://maxweb-5ea84-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "maxweb-5ea84",
+    storageBucket: "maxweb-5ea84.appspot.com",
+    messagingSenderId: "765328893873",
+    appId: "1:765328893873:web:9546126eb532e9165fff90",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase();
+  const reference = ref(db, "Users");
+
+  let dataID;
+
+  const userTableContents = $("#userTable");
+  const datatable = userTableContents.DataTable({
+    info: false,
+    order: [[1, "asc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3, 4, 5] },
+      { orderable: false, targets: [4, 5] },
+    ],
+    createdRow: (row, data, index) => {
+      $(row).find("td:last-child").addClass("success");
+      $(row).find("td:last-child").attr("id", dataID);
+    },
+  });
+
+  function createTableRowData(userData) {
+    return [
+      userData.username,
+      userData.role,
+      userData.lastLogin,
+      userData.email,
+      userData.contact,
+      "<span class='material-symbols-outlined'> edit </span>",
+    ];
+  }
+
+  let now = push(child(ref(db), "Users")).key;
+  const queryData = query(reference, orderByKey(), startAt(now));
+  onChildAdded(queryData, (data) => {
+    dataID = data.key;
+
+    const newRowData = createTableRowData(data.val());
+    datatable.row.add(newRowData).node().id = data.key + "0";
+    datatable.draw(false);
+  });
+
+  onChildChanged(reference, (data) => {
+    dataID = data.key;
+
+    const newRowData = createTableRowData(data.val());
+    const row = datatable.row("#" + data.key + "0");
+    row.data(newRowData).draw(false);
+  });
+</script>
+{% endblock PageContents%}

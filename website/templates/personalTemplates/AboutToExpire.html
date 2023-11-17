@@ -1,0 +1,1198 @@
+{% extends 'navBar.html'%} {%load static%} {% block PageContents%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+<style>
+  .transDetails {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-background);
+    border: 3px solid var(--color-dark);
+    border-radius: var(--border-radius-1);
+    padding: 15px;
+    display: none;
+  }
+
+  .reportTables button {
+    padding: 10px;
+    background-color: var(--color-white);
+    color: var(--color-dark);
+    cursor: pointer;
+  }
+
+  .closeButton {
+    float: right;
+    background-color: var(--color-background);
+    color: var(--color-dark);
+    cursor: pointer;
+  }
+
+  .transDetails table {
+    background: var(--color-white);
+    width: 100%;
+    height: 100%;
+    padding: var(--card-padding);
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: all 300ms ease;
+    border-radius: var(--border-radius-1);
+  }
+  .transDetails table tbody td {
+    height: 2.8rem;
+    border-bottom: 1px solid var(--color-light);
+    color: var(--color-dark-variant);
+  }
+
+  .tableFixHead {
+    overflow-y: auto;
+    height: 30rem;
+    margin-right: 10px;
+  }
+
+  .tableFixHead thead th {
+    position: sticky;
+    top: 0px;
+  }
+
+  .TableContents img {
+    height: 5rem;
+    width: 5rem;
+
+    display: block;
+    margin: 0 auto;
+  }
+</style>
+
+<main>
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-symbols-sharp">menu</span>
+      </button>
+
+      <div class="theme-toggler">
+        <span class="material-symbols-sharp">light_mode</span>
+        <span class="material-symbols-sharp active">dark_mode</span>
+      </div>
+
+      <div class="profile">
+        <div class="info">
+          <p>Hi, <b>{{User}}</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+
+        <div class="profile-photo">
+          <img id="userProfile" alt="user" src="{{imageURL}}" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <h1>{{Title}}</h1>
+
+  <div class="TableContents" id="itemTable">
+    {% csrf_token %}
+    <table id="itemTableContents">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Item ID</th>
+          <th>Item Name</th>
+          <th>Item Quantity</th>
+          <th>Price</th>
+          <th>Expiry Date</th>
+          {% if role != "Cashier" %}
+          <th>Edit</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in AboutToExpire.items %}
+        <tr id="{{key}}0">
+          <td>
+            <img src="{{value.imgsrc}}" alt="image" />
+          </td>
+
+          <td>{{value.itemID}}</td>
+          <td>{{value.itemName}}</td>
+          <td class="{{value.itemClass}}">{{value.itemQuantity}}</td>
+          <td>{{value.itemPrice}}</td>
+          <td class="{{value.expiryClass}}">{{value.expiryDate}}</td>
+          {% if role != "Cashier" %}
+          <td id="{{key}}" class="success">
+            <span class="material-symbols-outlined"> edit </span>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <ul class="Legend">
+    <li class="Legend-item">
+      <span class="Legend-colorBox" style="background-color: #ff7782"></span>
+      &nbsp;
+      <span class="Legend-label">Critical Stock / Expired</span>
+      &nbsp; &nbsp;
+      <span class="Legend-colorBox" style="background-color: #ffbb55"></span>
+      &nbsp;
+      <span class="Legend-label">Overstocked / About to Expire</span>
+    </li>
+  </ul>
+  {% if role != "Cashier" %}
+  <div class="float" id="export-quantities" onclick="openPopUp('salesReport')">
+    <span class="material-symbols-outlined circle-icon"> share_windows </span>
+  </div>
+</main>
+
+<div class="form-popup additem-scroll" id="editItemForm" style="width: 55%">
+  <form class="form-container" id="editItem">
+    {% csrf_token %}
+    <h1 style="text-align: center">Edit Item</h1>
+    <div id="edit_off_screen_preview" style="position: absolute; left: -1000px">
+      <svg id="edit_off_screen_barcode" class="barcodeImage"></svg>
+    </div>
+
+    <div class="add-item-image">
+      <div>
+        <img id="editItemImgPreview" alt="preview" class="img" />
+        <div class="add-item-image-holder" id="editItemImageHolder">
+          <label for="editItemImageFile">
+            Select Image <br />
+            <i class="fa fa-2x fa-camera"></i>
+            <input id="editItemImageFile" type="file" />
+            <br />
+          </label>
+        </div>
+      </div>
+      <div>
+        <div>
+          <p>Barcode</p>
+          <input
+            type="text"
+            placeholder="Item ID"
+            id="editItemID"
+            style="width: 85%"
+            required
+          />
+          <span
+            id="edit_generate_download"
+            class="material-symbols-outlined vertically-aligned"
+            style="font-size: 2.5rem"
+            >barcode
+          </span>
+        </div>
+        <div>
+          <p>Item Name</p>
+          <input
+            type="text"
+            placeholder="Item Name"
+            id="editItemName"
+            required
+          />
+        </div>
+        <div>
+          <p>Item Price</p>
+          <input
+            type="number"
+            step="0.01"
+            placeholder="Item Price"
+            id="editItemPrice"
+            required
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="add-item-image">
+      <div>
+        <div>
+          <p>Quantity</p>
+          <input
+            type="number"
+            placeholder="Item Quantity"
+            id="editItemQuantity"
+            required
+          />
+        </div>
+        <div>
+          <p>Max Quantity</p>
+          <input
+            type="number"
+            placeholder="Max Quantity"
+            id="editItemMaxQuantity"
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <div>
+          <p>Critical Quantity</p>
+          <input
+            type="number"
+            placeholder="Critical QTY"
+            id="editItemCriticalQuantity"
+            required
+          />
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="addExpiryBtn" id="editexpiryBtn" onclick="editopenExpiry()">
+        <p>Add expiration date</p>
+        &nbsp; <span class="material-symbols-outlined"> add_circle </span>
+      </div>
+
+      <div id="editaddExpiryInput" hidden>
+        <div class="add-item-image">
+          <div>
+            <p>Expiration Date</p>
+            <input
+              type="date"
+              min="2022-12-31"
+              name="expiryDate"
+              id="editexpiryDate"
+            />
+          </div>
+          <div>
+            <p>Notify before</p>
+            <input type="number" placeholder="Days" id="editnotifyDays" />
+          </div>
+        </div>
+
+        <div class="button-container">
+          <button type="button" id="addExpiryDateBTN">Add</button>
+          <button type="button" onclick="editcloseExpiry()">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="editexpiredHolder" class="expiryList">
+      <b>Expiration Dates:</b>
+      <div id="editexpiredList" class="scroll"></div>
+    </div>
+
+    <div class="form-buttons">
+      <button type="submit">Save</button>
+      <button type="button" onclick="removeItem()" id="removeBtn">
+        Remove
+      </button>
+      <button type="button" onclick="closeEditItem()">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<div class="transDetails" id="salesReport">
+  <button class="closeButton">
+    <span class="material-symbols-outlined" onclick="closeReport()">
+      close
+    </span>
+  </button>
+  <h1 style="text-align: center">Export Quantities</h1>
+  <div class="reportTables">
+    <div class="tableFixHead">
+      <table id="reportContents">
+        <thead>
+          <tr>
+            <th>Item ID</th>
+            <th>Item Name</th>
+            <th>Critical Quantity</th>
+            <th>Current Quantity</th>
+            <th>Max Quantity</th>
+            <th>Quantity Needed</th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+<script type="text/javascript">
+  document
+    .getElementById("edit_generate_download")
+    .addEventListener("click", function () {
+      generateBarcode("edit_off_screen_barcode", $("#editItemID").val());
+      html2canvas(document.getElementById("edit_off_screen_preview")).then(
+        function (canvas) {
+          var anchorTag = document.createElement("a");
+          document.body.appendChild(anchorTag);
+          anchorTag.download = "barcode.jpg";
+          anchorTag.href = canvas.toDataURL();
+          anchorTag.target = "_blank";
+          anchorTag.click();
+        }
+      );
+    });
+
+  function openPopUp(id) {
+    $("#" + id).show();
+  }
+
+  function closeEditItem() {
+    document.getElementById("editItemForm").style.display = "none";
+    $("#editItemImageFile").val("");
+    $("#editItemImgPreview").attr("src", "");
+    $("#itemID").val("");
+    $("#itemName").val("");
+    $("#itemPrice").val("");
+    $("#itemQuantity").val("");
+    $("#itemMaxQuantity").val("");
+    $("#itemCriticalQuantity").val("");
+
+    editcloseExpiry();
+  }
+
+  document
+    .getElementById("addExpiryDateBTN")
+    .addEventListener("click", function () {
+      addEditExpiryDate($("#editexpiryDate").val(), $("#editnotifyDays").val());
+    });
+
+  function createButton(text, color, clickHandler) {
+    const span = document.createElement("span");
+    const innerText = document.createTextNode(text);
+    span.className = "material-symbols-outlined";
+    span.style.color = color;
+    span.append(innerText);
+    span.addEventListener("click", function () {
+      if (clickHandler == "removeAttribute") {
+        $(this)
+          .closest("div")
+          .next("br")
+          .next("div")
+          .children("input")
+          .removeAttr("disabled");
+        $(this)
+          .closest("div")
+          .next("br")
+          .next("div")
+          .next("div")
+          .children("input")
+          .removeAttr("disabled");
+      } else {
+        $(this).closest("div").parent("div").remove();
+      }
+    });
+    return span;
+  }
+
+  function createInput(type, width, value) {
+    const input = document.createElement("input");
+    input.value = value;
+    input.type = type;
+    input.style.width = width;
+    input.disabled = true;
+
+    return input;
+  }
+
+  function createBoldText(value) {
+    const b = document.createElement("b");
+    $(b).text(value);
+
+    return b;
+  }
+
+  function createSpanText(value) {
+    const span = document.createElement("span");
+    $(span).text(value);
+
+    return span;
+  }
+
+  function addEditExpiryDate(expiryValue, notifyValue) {
+    const div = document.createElement("div");
+
+    // EXPIRY BUTTONS
+    const expiryButtons = document.createElement("div");
+    expiryButtons.className = "expiryButtons";
+    expiryButtons.append(createButton("edit", "green", "removeAttribute"));
+    expiryButtons.append(createButton("delete", "red", "removeElement"));
+
+    // EXPIRY CONTENTS
+    const expiry = document.createElement("div");
+    expiry.append(createBoldText("EXP:"));
+    expiry.append(createInput("date", "60%", expiryValue));
+
+    const notify = document.createElement("div");
+    notify.append(createBoldText("Notify before: "));
+    notify.append(createInput("number", "30%", notifyValue));
+    notify.append(createSpanText("days"));
+
+    const br = document.createElement("br");
+    div.append(expiryButtons);
+    div.append(br);
+    div.append(expiry);
+    div.append(notify);
+
+    $("#editexpiredList").prepend(div);
+    editcloseExpiry();
+  }
+
+  function editopenExpiry() {
+    $("#editexpiryBtn").hide();
+    openPopUp("editaddExpiryInput");
+  }
+
+  function editcloseExpiry() {
+    $("#editexpiryBtn").show();
+    $("#editexpiryDate").val("");
+    $("#editnotifyDays").val("");
+    closePopUp("editaddExpiryInput");
+  }
+
+  $("#itemTableContents tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    editItem(data);
+  });
+
+  let itemKeyToPass;
+
+  function editItem(key) {
+    $.ajax({
+      type: "POST",
+      url: '{% url "EditItem" %}',
+      data: {
+        itemKey: key,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (itemDetails) {
+        editcancelClick();
+        editopenItem();
+
+        itemKeyToPass = itemDetails["key"];
+
+        if (itemDetails["imgsrc"] != "") {
+          $("#editItemImgPreview").attr("src", itemDetails["imgsrc"]);
+
+          $("#editItemImageHolder").hide();
+          $("#editItemImgPreview").show();
+        } else {
+          $("#editItemImageHolder").show();
+          $("#editItemImgPreview").hide();
+        }
+
+        $("#editItemID").val(itemDetails["itemID"]);
+        $("#editItemName").val(itemDetails["itemName"]);
+        $("#editItemPrice").val(itemDetails["itemPrice"]);
+        $("#editItemQuantity").val(itemDetails["itemQuantity"]);
+        $("#editItemMaxQuantity").val(itemDetails["itemMaxQuantity"]);
+        $("#editItemCriticalQuantity").val(itemDetails["itemCriticalQuantity"]);
+
+        let expiryDate = itemDetails["expiryDate"];
+        if (expiryDate != "") {
+          for (let x = 0; x < expiryDate.length; x++) {
+            addEditExpiryDate(expiryDate[x]["date"], expiryDate[x]["notify"]);
+          }
+        }
+        $("#editItemForm").show();
+      },
+    });
+  }
+
+  document
+    .getElementById("editItemImageFile")
+    .addEventListener("change", (e) => {
+      const imgDetails = document.getElementById("editItemImageFile").files[0];
+      if (imgDetails) {
+        let name = imgDetails.name;
+        let type = imgDetails.type;
+        let size = imgDetails.size + "bytes";
+        previewImage(imgDetails, "editItemImgPreview");
+        $("#editItemImageHolder").hide();
+        $("#editItemImgPreview").show();
+      } else {
+        imagePreview.src = "";
+        console.error("Please select a picture");
+      }
+    });
+
+  $("#editItemImgPreview").on("click", function () {
+    $("#editItemImageFile").trigger("click");
+  });
+
+  $(document).on("submit", "#editItem", function (e) {
+    e.preventDefault();
+
+    let expiryDates = [];
+    let counter = 0;
+
+    let expirydate;
+    $("#editexpiredList *")
+      .filter(":input")
+      .each(function () {
+        counter += 1;
+
+        if (counter == 1) {
+          expirydate = $(this).val();
+        }
+
+        if (counter == 2) {
+          counter = 0;
+
+          let notify = $(this).val() === "" ? 0 : $(this).val();
+
+          let expiry = {
+            date: expirydate,
+            notify: notify,
+          };
+          expiryDates.push(expiry);
+        }
+      });
+
+    let data = JSON.stringify(expiryDates);
+    console.log(data);
+
+    let csrfToken = $("input[name=csrfmiddlewaretoken]").val();
+    let formData = new FormData();
+
+    formData.append("image", $("#editItemImageFile")[0].files[0]);
+    formData.append("itemkey", itemKeyToPass);
+    formData.append("itemID", $("#editItemID").val());
+    formData.append("itemName", $("#editItemName").val());
+    formData.append("itemPrice", $("#editItemPrice").val());
+    formData.append("itemQuantity", $("#editItemQuantity").val());
+    formData.append("itemMaxQuantity", $("#editItemMaxQuantity").val());
+    formData.append(
+      "itemCriticalQuantity",
+      $("#editItemCriticalQuantity").val()
+    );
+    formData.append("expiryDates", data);
+    formData.append("csrfmiddlewaretoken", csrfToken);
+
+    $.ajax({
+      type: "POST",
+      url: '{% url "SaveEditItem" %}',
+      data: formData,
+      contentType: false,
+      processData: false,
+      headers: {
+        "X-CSRFToken": csrfToken,
+      },
+      success: function (response) {
+        // Handle success
+        $("#success-message").text(response.message);
+        $(".success-alert").addClass("show");
+        $(".success-alert").removeClass("hide");
+        $(".success-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".success-alert").removeClass("show");
+          $(".success-alert").addClass("hide");
+        }, 5000);
+
+        // Close the edit item pop-up
+        closeEditItem();
+      },
+      error: function (xhr, status, response) {
+        var response = xhr.responseJSON;
+
+        var errorMessage = response.message || "An error occurred.";
+        if (response.errors) {
+          Object.keys(response.errors).forEach(function (fieldName) {
+            var fieldError = response.errors[fieldName];
+            errorMessage += " " + fieldError;
+          });
+        }
+
+        $("#error-message").text(errorMessage);
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 10000);
+      },
+    });
+  });
+
+  function removeItem() {
+    $.ajax({
+      type: "POST",
+      url: '{% url "RemoveItem" %}',
+      data: {
+        itemID: itemKeyToPass,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (response) {
+        $("#editItemForm").hide();
+
+        // Handle success
+        $("#success-message").text(response.message);
+        $(".success-alert").addClass("show");
+        $(".success-alert").removeClass("hide");
+        $(".success-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".success-alert").removeClass("show");
+          $(".success-alert").addClass("hide");
+        }, 5000);
+      },
+      error: function (xhr, status, response) {
+        var response = xhr.responseJSON;
+
+        // Handle error
+        var errorMessage = response.message || "An error occurred.";
+        if (response.errors) {
+          Object.keys(response.errors).forEach(function (fieldName) {
+            var fieldError = response.errors[fieldName];
+            errorMessage += " " + fieldError;
+          });
+        }
+
+        $("#error-message").text(errorMessage);
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 10000);
+      },
+    });
+  }
+
+  const reportTable = $("#reportContents");
+
+  const reportDatatable = reportTable.DataTable({
+    info: false,
+    order: [[1, "asc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3, 4, 5] },
+      { orderable: false, targets: [0] },
+    ],
+    lengthMenu: [
+      [10, 25],
+      [10, 25],
+    ],
+    dom: "Bfrtip",
+    buttons: ["csv", "excel", "pdf", "print"],
+  });
+
+  function closeReport() {
+    reportDatatable.clear().draw();
+    $("#salesReport").hide();
+  }
+
+  document
+    .getElementById("export-quantities")
+    .addEventListener("click", function () {
+      getData();
+    });
+
+  function getData() {
+    reportDatatable.clear().draw();
+    $.ajax({
+      type: "POST",
+      url: '{% url "getItemData" %}',
+      data: {
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (itemDetails) {
+        for (const key in itemDetails) {
+          const {
+            itemQuantity,
+            itemCriticalQuantity,
+            itemMaxQuantity,
+            itemID,
+            itemName,
+          } = itemDetails[key];
+
+          const quantityAvailable = itemQuantity;
+          const criticalQuantity = itemCriticalQuantity;
+          const maxQuantity = itemMaxQuantity;
+          const quantityNeeded =
+            quantityAvailable <= maxQuantity
+              ? maxQuantity - quantityAvailable
+              : "overstocked";
+
+          reportDatatable.row
+            .add([
+              itemID,
+              itemName,
+              criticalQuantity,
+              quantityAvailable,
+              maxQuantity,
+              quantityNeeded,
+            ])
+            .draw(false);
+        }
+      },
+    });
+  }
+
+  function editcancelClick() {
+    const element = document.getElementById("editexpiredList");
+    if (element != null) {
+      element.remove();
+    }
+  }
+
+  function editopenItem() {
+    const element = document.getElementById("editexpiredList");
+    if (element == null) {
+      const div = document.createElement("div");
+      div.setAttribute("id", "editexpiredList");
+      div.className = "scroll";
+
+      $("#editexpiredHolder").append(div);
+    }
+  }
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onChildChanged,
+    onChildAdded,
+    onChildRemoved,
+    query,
+    startAt,
+    push,
+    child,
+    orderByKey,
+  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKBm5kuT0f-hwVg3ecC6SjZTE4MMxfRi4",
+    authDomain: "maxweb-5ea84.firebaseapp.com",
+    databaseURL:
+      "https://maxweb-5ea84-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "maxweb-5ea84",
+    storageBucket: "maxweb-5ea84.appspot.com",
+    messagingSenderId: "765328893873",
+    appId: "1:765328893873:web:9546126eb532e9165fff90",
+  };
+  const app = initializeApp(firebaseConfig);
+
+  const db = getDatabase();
+  const reference = ref(db, "Items/");
+
+  function addTableItemClass(itemData) {
+    const { itemQuantity, itemCriticalQuantity, itemMaxQuantity } = itemData;
+    let className = "";
+    if (itemQuantity <= itemCriticalQuantity) {
+      className = "danger";
+    } else if (itemQuantity > itemMaxQuantity) {
+      className = "warning";
+    }
+    return className;
+  }
+
+  function formatPrice(price) {
+    return price % 1 === 0 ? price.toFixed(1) : price;
+  }
+
+  function expiryDataChecker(expiryDateParams) {
+    const expiryList = expiryDateParams.map((expiryData) => ({
+      notify: Number(expiryData.notify),
+      date: new Date(expiryData.date),
+    }));
+
+    expiryList.sort((date1, date2) => date1.date - date2.date);
+
+    let firstAboutToExpire = null;
+    let className = null;
+
+    if (expiryList.length > 0) {
+      const today = new Date();
+
+      for (const expiryData of expiryList) {
+        const expiryDate = expiryData.date.toISOString().slice(0, 10);
+
+        if (expiryData.date > today) {
+          const aboutToExpire = new Date(expiryData.date);
+          aboutToExpire.setDate(aboutToExpire.getDate() - expiryData.notify);
+
+          if (
+            aboutToExpire <= today &&
+            (!firstAboutToExpire || expiryData.date > firstAboutToExpire)
+          ) {
+            className = "warning";
+            firstAboutToExpire = expiryDate;
+          }
+        } else {
+          className = "danger";
+          if (!firstAboutToExpire || expiryData.date > firstAboutToExpire) {
+            firstAboutToExpire = expiryDate;
+          }
+        }
+      }
+
+      if (!firstAboutToExpire) {
+        firstAboutToExpire = expiryList[0].date.toISOString().slice(0, 10);
+      }
+    } else {
+      firstAboutToExpire = "";
+    }
+
+    let dataObject = {
+      expiry: firstAboutToExpire,
+      class: className,
+    };
+
+    return dataObject;
+  }
+
+  let dataID;
+  let expiryClass;
+  let quantityClass;
+
+  const itemTableContents = $("#itemTableContents");
+
+  const datatable = itemTableContents.DataTable({
+    info: false,
+    order: [[4, "asc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3, 4, 5, 6] },
+      { orderable: false, targets: [0, 1, 6] },
+    ],
+    lengthMenu: [
+      [10, 25],
+      [10, 25],
+    ],
+    createdRow: (row, data, index) => {
+      $(row).find("td:eq(3)").addClass(quantityClass);
+      $(row).find("td:eq(5)").addClass(expiryClass);
+      $(row).find("td:last-child").addClass("success");
+      $(row).find("td:last-child").attr("id", dataID);
+    },
+  });
+
+  function createTableRowData(itemData) {
+    const price = formatPrice(parseFloat(itemData.itemPrice));
+    let expiryDate = "";
+    let expiryClass;
+
+    if (itemData.expiryDate) {
+      const expiryData = expiryDataChecker(itemData.expiryDate);
+      expiryDate = expiryData.expiry;
+      expiryClass = expiryData.class;
+    }
+
+    const quantityClass = addTableItemClass(itemData);
+
+    return [
+      '<img src="' + itemData.imgsrccopy + '" alt="image">',
+      itemData.itemID,
+      itemData.itemName,
+      itemData.itemQuantity,
+      price,
+      expiryDate,
+      "<span class='material-symbols-outlined'> edit </span>",
+    ];
+  }
+
+  function updateTableRow(data, newRowData) {
+    const element = document.getElementById(data.key + "0");
+
+    if (element) {
+      let itemData = data.val();
+      const row = datatable.row("#" + data.key + "0");
+      row.data(newRowData).draw(false);
+
+      const rowElement = $("#" + data.key + "0");
+      if (itemData.expiryDate) {
+        const dataObject = expiryDataChecker(itemData.expiryDate);
+        rowElement
+          .find("td:eq(5)")
+          .removeClass("danger warning")
+          .addClass(dataObject.class);
+      }
+
+      const itemQuantityClass = addTableItemClass(itemData);
+      rowElement
+        .find("td:eq(3)")
+        .removeClass("danger warning")
+        .addClass(itemQuantityClass);
+    } else {
+      createRow(data);
+    }
+  }
+
+  function createRow(data) {
+    dataID = data.key;
+    const itemData = data.val();
+    if (itemData.expiryDate) {
+      const dataObject = expiryDataChecker(itemData.expiryDate);
+      const expiryClassCheck = dataObject.class;
+
+      if (expiryClassCheck === "warning" || expiryClassCheck === "danger") {
+        expiryClass = dataObject.class;
+        quantityClass = addTableItemClass(itemData);
+
+        const newRowData = createTableRowData(data.val());
+        datatable.row.add(newRowData).node().id = data.key + "0";
+        datatable.draw(false);
+      }
+    }
+  }
+
+  const now = push(child(ref(db), "Items")).key;
+  const queryData = query(reference, orderByKey(), startAt(now));
+  onChildAdded(queryData, (data) => {
+    createRow(data);
+  });
+
+  onChildChanged(reference, (data) => {
+    const itemData = data.val();
+    if (itemData.expiryDate) {
+      const dataObject = expiryDataChecker(itemData.expiryDate);
+      const expiryClassCheck = dataObject.class;
+
+      if (expiryClassCheck === "warning" || expiryClassCheck === "danger") {
+        const newRowData = createTableRowData(itemData);
+        updateTableRow(data, newRowData);
+      } else {
+        datatable
+          .row($("#" + data.key + "0"))
+          .remove()
+          .draw(false);
+      }
+    } else {
+      datatable
+        .row($("#" + data.key + "0"))
+        .remove()
+        .draw(false);
+    }
+  });
+
+  onChildRemoved(reference, (data) => {
+    datatable
+      .row($("#" + data.key + "0"))
+      .remove()
+      .draw(false);
+  });
+</script>
+{% else %}
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onChildChanged,
+    onChildAdded,
+    onChildRemoved,
+    query,
+    startAt,
+    push,
+    child,
+    orderByKey,
+  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const config = {
+    apiKey: "AIzaSyAKBm5kuT0f-hwVg3ecC6SjZTE4MMxfRi4",
+    authDomain: "maxweb-5ea84.firebaseapp.com",
+    databaseURL:
+      "https://maxweb-5ea84-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "maxweb-5ea84",
+    storageBucket: "maxweb-5ea84.appspot.com",
+    messagingSenderId: "765328893873",
+    appId: "1:765328893873:web:9546126eb532e9165fff90",
+  };
+  const firebaseApp = initializeApp(config);
+
+  const database = getDatabase();
+  const itemsReference = ref(database, "Items/");
+
+  function addTableItemClass(itemData) {
+    const { itemQuantity, itemCriticalQuantity, itemMaxQuantity } = itemData;
+    let className = "";
+    if (itemQuantity <= itemCriticalQuantity) {
+      className = "danger";
+    } else if (itemQuantity > itemMaxQuantity) {
+      className = "warning";
+    }
+    return className;
+  }
+
+  function formatPrice(price) {
+    return price % 1 === 0 ? price.toFixed(1) : price;
+  }
+
+  function expiryDataChecker(expiryDateParams) {
+    const expiryList = expiryDateParams.map((expiryData) => ({
+      notify: Number(expiryData.notify),
+      date: new Date(expiryData.date),
+    }));
+
+    expiryList.sort((date1, date2) => date1.date - date2.date);
+
+    let firstAboutToExpire = null;
+    let className = null;
+
+    if (expiryList.length > 0) {
+      const today = new Date();
+
+      for (const expiryData of expiryList) {
+        const expiryDate = expiryData.date.toISOString().slice(0, 10);
+
+        if (expiryData.date > today) {
+          const aboutToExpire = new Date(expiryData.date);
+          aboutToExpire.setDate(aboutToExpire.getDate() - expiryData.notify);
+
+          if (
+            aboutToExpire <= today &&
+            (!firstAboutToExpire || expiryData.date > firstAboutToExpire)
+          ) {
+            className = "warning";
+            firstAboutToExpire = expiryDate;
+          }
+        } else {
+          className = "danger";
+          if (!firstAboutToExpire || expiryData.date > firstAboutToExpire) {
+            firstAboutToExpire = expiryDate;
+          }
+        }
+      }
+
+      if (!firstAboutToExpire) {
+        firstAboutToExpire = expiryList[0].date.toISOString().slice(0, 10);
+      }
+    } else {
+      firstAboutToExpire = "";
+    }
+
+    let dataObject = {
+      expiry: firstAboutToExpire,
+      class: className,
+    };
+
+    return dataObject;
+  }
+
+  let itemExpiryClass;
+  let itemQuantityClass;
+
+  const itemTable = $("#itemTableContents");
+
+  const itemDataTable = itemTable.DataTable({
+    info: false,
+    order: [[4, "asc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3, 4, 5] },
+      { orderable: false, targets: [0, 1] },
+    ],
+    lengthMenu: [
+      [10, 25],
+      [10, 25],
+    ],
+    createdRow: (row, data, index) => {
+      $(row).find("td:eq(3)").addClass(itemQuantityClass);
+      $(row).find("td:eq(5)").addClass(itemExpiryClass);
+    },
+  });
+
+  function createTableRowData(itemData) {
+    const price = formatPrice(parseFloat(itemData.itemPrice));
+    let expiryDate = "";
+    let expiryClass;
+
+    if (itemData.expiryDate) {
+      const expiryData = expiryDataChecker(itemData.expiryDate);
+      expiryDate = expiryData.expiry;
+      expiryClass = expiryData.class;
+    }
+
+    const quantityClass = addTableItemClass(itemData);
+
+    return [
+      '<img src="' + itemData.imgsrccopy + '" alt="image">',
+      itemData.itemID,
+      itemData.itemName,
+      itemData.itemQuantity,
+      price,
+      expiryDate,
+    ];
+  }
+
+  function updateTableRow(data, newRowData) {
+    const element = document.getElementById(data.key + "0");
+
+    if (element) {
+      let itemData = data.val();
+      const row = itemDataTable.row("#" + data.key + "0");
+      row.data(newRowData).draw(false);
+
+      const rowElement = $("#" + data.key + "0");
+      if (itemData.expiryDate) {
+        const dataObject = expiryDataChecker(itemData.expiryDate);
+        rowElement
+          .find("td:eq(5)")
+          .removeClass("danger warning")
+          .addClass(dataObject.class);
+      }
+
+      const itemQuantityClass = addTableItemClass(itemData);
+      rowElement
+        .find("td:eq(3)")
+        .removeClass("danger warning")
+        .addClass(itemQuantityClass);
+    } else {
+      createRow(data);
+    }
+  }
+
+  function createRow(data) {
+    const itemData = data.val();
+    if (itemData.expiryDate) {
+      const dataObject = expiryDataChecker(itemData.expiryDate);
+      const expiryClassCheck = dataObject.class;
+
+      if (expiryClassCheck === "warning" || expiryClassCheck === "danger") {
+        itemExpiryClass = dataObject.class;
+        itemQuantityClass = addTableItemClass(itemData);
+
+        const newRowData = createTableRowData(data.val());
+        itemDataTable.row.add(newRowData).node().id = data.key + "0";
+        itemDataTable.draw(false);
+      }
+    }
+  }
+
+  const current = push(child(ref(database), "Items")).key;
+  const currentquery = query(itemsReference, orderByKey(), startAt(current));
+  onChildAdded(currentquery, (data) => {
+    createRow(data);
+  });
+
+  onChildChanged(itemsReference, (data) => {
+    const itemData = data.val();
+    if (itemData.expiryDate) {
+      const dataObject = expiryDataChecker(itemData.expiryDate);
+      const expiryClassCheck = dataObject.class;
+
+      if (expiryClassCheck === "warning" || expiryClassCheck === "danger") {
+        const newRowData = createTableRowData(itemData);
+        updateTableRow(data, newRowData);
+      } else {
+        itemDataTable
+          .row($("#" + data.key + "0"))
+          .remove()
+          .draw(false);
+      }
+    } else {
+      itemDataTable
+        .row($("#" + data.key + "0"))
+        .remove()
+        .draw(false);
+    }
+  });
+
+  onChildRemoved(itemsReference, (data) => {
+    itemDataTable
+      .row($("#" + data.key + "0"))
+      .remove()
+      .draw(false);
+  });
+</script>
+{% endif %} {% endblock PageContents%}

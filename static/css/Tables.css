@@ -1,0 +1,124 @@
+main .TableContents {
+  margin-top: 2rem;
+}
+
+main .TableContents h2 {
+  margin-bottom: 0.8rem;
+}
+
+main .TableContents table {
+  background: var(--color-white);
+  width: 100%;
+  height: 20%;
+  border-radius: var(--card-border-radius);
+  padding: var(--card-padding);
+  text-align: center;
+  box-shadow: var(--box-shadow);
+  transition: all 300ms ease;
+}
+
+main .TableContents table:hover {
+  box-shadow: none;
+}
+
+main table tbody td {
+  height: 2.8rem;
+  border-bottom: 1px solid var(--color-light);
+  color: var(--color-dark-variant);
+}
+
+main table tbody tr:last-child td {
+  border: none;
+}
+
+main table thead th {
+  width: 1rem;
+}
+
+main .TableContents a {
+  display: block;
+  margin-top: 1rem;
+  color: var(--color-primary);
+}
+
+.searchBarcode input {
+  font-size: 17px;
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 5px;
+  margin-bottom: 5px;
+}
+
+.searchBarcode span {
+  font-size: 16px;
+  color: var(--color-dark);
+}
+.searchBarcode button {
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 6px;
+}
+
+.receiptBTN {
+  float: right;
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 10px;
+}
+
+.addBatch {
+  display: none;
+}
+
+.TableContents .search {
+  float: right;
+  text-align: center;
+}
+
+.TableContents .search input {
+  background: var(--color-white);
+  color: var(--color-dark);
+  box-sizing: border-box;
+  border-radius: var(--border-radius-1);
+  width: 10rem;
+  height: 2.6rem;
+  padding: 0.46rem;
+  margin-bottom: 5px;
+  font-family: "Poppins", sans-serif;
+}
+
+.TableContents .search button {
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 0.46rem;
+  font-family: "Poppins", sans-serif;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle-icon {
+  background: #03dac6;
+  color: var(--color-white);
+  border-radius: 50%;
+  text-align: center;
+  vertical-align: middle;
+  padding: 1rem;
+  font-size: 2.3rem;
+
+  cursor: pointer;
+}
+
+.float {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  bottom: 60px;
+  right: 40px;
+  color: #fff;
+}

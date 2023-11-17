@@ -1,0 +1,503 @@
+{% extends 'navBar.html'%} {%load static%} {% block PageContents%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+<link
+  href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  .transDetails {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-background);
+    border: 3px solid var(--color-dark);
+    border-radius: var(--border-radius-1);
+    padding: 15px;
+    display: none;
+  }
+
+  .reportTables button {
+    padding: 10px;
+    background-color: var(--color-white);
+    color: var(--color-dark);
+    cursor: pointer;
+  }
+
+  .closeButton {
+    float: right;
+    background-color: var(--color-background);
+    color: var(--color-dark);
+    cursor: pointer;
+  }
+
+  .transDetails .reportTables {
+    display: grid;
+    grid-template-columns: 80% 20%;
+  }
+
+  .transLabels textarea {
+    width: 100%;
+    font-family: "Poppins", sans-serif;
+    border-radius: var(--border-radius-1);
+  }
+
+  .transDetails table {
+    background: var(--color-white);
+    width: 100%;
+    height: 100%;
+    padding: var(--card-padding);
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: all 300ms ease;
+    border-radius: var(--border-radius-1);
+  }
+  .transDetails table tbody td {
+    height: 2.8rem;
+    border-bottom: 1px solid var(--color-light);
+    color: var(--color-dark-variant);
+  }
+
+  .tableFixHead {
+    overflow-y: auto;
+    height: 20rem;
+    margin-right: 10px;
+  }
+
+  .reportTables .tableFixHead {
+    overflow-y: auto;
+    height: 30rem;
+    margin-right: 10px;
+  }
+
+  .tableFixHead thead th {
+    position: sticky;
+    top: 0px;
+  }
+  .transLabels {
+    font-size: 15px;
+    gap: 5x;
+  }
+
+  .downloadForm input {
+    background: var(--color-white);
+    color: var(--color-dark);
+    box-sizing: border-box;
+    border-radius: var(--border-radius-1);
+    width: 100%;
+    text-align: center;
+    padding: 5px;
+    margin-bottom: 5px;
+    font-family: "Poppins", sans-serif;
+  }
+
+  /* Sales Report Buttons */
+  .downloadForm button {
+    border-radius: var(--border-radius-1);
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+  }
+  .submitBT {
+    background-color: green;
+  }
+  .downloadBT {
+    background: rgb(116, 116, 86);
+  }
+  .closeBT {
+    background-color: red;
+  }
+
+  .chartHolder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 100px;
+  }
+
+  .chartBorder {
+    background: var(--color-white);
+    padding: var(--card-padding);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--box-shadow);
+  }
+
+  .tableFixHead img {
+    height: 5rem;
+    width: 5rem;
+
+    display: block;
+    margin: 0 auto;
+  }
+</style>
+
+<main>
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-symbols-sharp">menu</span>
+      </button>
+
+      <div class="theme-toggler">
+        <span class="material-symbols-sharp">light_mode</span>
+        <span class="material-symbols-sharp active">dark_mode</span>
+      </div>
+
+      <div class="profile">
+        <div class="info">
+          <p>Hi, <b>{{User}}</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+
+        <div class="profile-photo">
+          <img id="userProfile" alt="user" src="{{imageURL}}" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h1>{{Title}}</h1>
+
+  <div class="TableContents">
+    <table id="reportTable">
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>User</th>
+          <th>Status</th>
+          <th>Item Status</th>
+          <th>Total</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in TransactionList.items %}
+        <tr id="{{key}}0">
+          <td>{{value.transactionID}}</td>
+          <td>{{value.currentDate}}</td>
+          <td>{{value.currentTime}}</td>
+          <td>{{value.currentUser}}</td>
+          <td class="danger">{{value.status}}</td>
+          <td class="success">{{value.itemStatus}}</td>
+          <td>{{value.totalPrice}}</td>
+          <td class="primary" id="{{key}}">
+            <span class="material-symbols-outlined"> report </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div id="transactionContents" class="transDetails">
+  <button class="closeButton" onclick="closeTransactionDetails()">
+    <span class="material-symbols-outlined"> close </span>
+  </button>
+  <br />
+  <div class="transLabels">
+    <b> Transaction ID: </b> <span id="transactionID"></span><br />
+    <b> Customer: </b> <span id="customer"></span><br />
+    <b> Date: </b> <span id="date"></span><br />
+    <b> Time: </b> <span id="time"></span><br />
+    <b> Status: </b> <span id="status" class="danger"></span><br />
+    <b> Remarks: </b> <span id="remarks"></span><br />
+    <b id="itemBoldStatus"> Item Status:</b>
+    <span id="itemStatus" class="success"></span>
+    <form
+      id="returnToInventory"
+      class="button-container"
+      style="margin-right: 1rem"
+    >
+      {% csrf_token %}
+      <button type="submit" id="returnBtn">Return items to inventory</button>
+    </form>
+  </div>
+  <br />
+  <div class="tableFixHead">
+    <table id="detailsTable">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Item Name</th>
+          <th>Quantity</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+</div>
+
+<script>
+  function closeTransactionDetails() {
+    $("#transactionID").text("");
+    $("#customer").text("");
+    $("#date").text("");
+    $("#time").text("");
+    $("#status").text("");
+    $("#remarks").text("");
+    $("#remarksText").val("");
+
+    $("#transactionContents").hide();
+  }
+
+  $("#reportTable tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    viewDetails(data);
+  });
+
+  function closePopUp(popupId, tableBodyId) {
+    $("#" + popupId).hide();
+
+    const tableBody = document.getElementById(tableBodyId);
+    if (tableBody != null) {
+      tableBody.remove();
+    }
+  }
+
+  function openPopUp(popupId) {
+    $("#" + popupId).show();
+  }
+
+  function createTableCell(value, cellId) {
+    const td = document.createElement("td");
+    $(td).text(value);
+    if (cellId != null) {
+      td.setAttribute("id", cellId);
+    }
+    return td;
+  }
+
+  function createTableBody(bodyId, appendTo, totalId, cellCount) {
+    const tbody = document.createElement("tbody");
+    tbody.setAttribute("id", bodyId);
+
+    const tr = document.createElement("tr");
+
+    for (let i = 0; i < cellCount; i++) {
+      tr.appendChild(createTableCell());
+    }
+
+    if (cellCount > 0) {
+      tr.appendChild(createTableCell("", totalId));
+      tbody.appendChild(tr);
+    }
+    document.querySelector(appendTo).append(tbody);
+  }
+
+  let transactionKey = "";
+  function viewDetails(key) {
+    transactionKey = key;
+    $.ajax({
+      type: "POST",
+      url: '{% url "VoidedDetails" %}',
+      data: {
+        transID: key,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (transactionDetails) {
+        const tableBody = document.getElementById("tableBodyContents");
+        if (tableBody != null) {
+          tableBody.remove();
+        }
+        $("#transactionID").text(transactionDetails["transactionID"]);
+        $("#customer").text(transactionDetails["customer"]);
+        $("#date").text(transactionDetails["currentDate"]);
+        $("#time").text(transactionDetails["currentTime"]);
+        $("#status").text(transactionDetails["status"]);
+
+        $("#remarksContainer").show();
+        $("#remarks").text(transactionDetails["remarks"]);
+        $("#status").addClass("danger");
+
+        if (transactionDetails["itemStatus"] == "returned to inventory") {
+          $("#itemBoldStatus").show();
+          $("#itemStatus").show();
+          $("#itemStatus").text(transactionDetails["itemStatus"]);
+          $("#returnBtn").hide();
+        } else {
+          $("#itemBoldStatus").hide();
+          $("#itemStatus").hide();
+          $("#returnBtn").show();
+        }
+
+        createTableBody("tableBodyContents", "#detailsTable");
+
+        let itemsBought = transactionDetails["itemsBought"];
+        for (let i = 0; i < itemsBought.length; i++) {
+          const tr = document.createElement("tr");
+
+          const img = document.createElement("img");
+          img.src = itemsBought[i]["imgsrc"];
+          img.alt = "image";
+
+          const td = document.createElement("td");
+          td.appendChild(img);
+
+          tr.appendChild(td);
+          tr.appendChild(createTableCell(itemsBought[i]["itemName"]));
+          tr.appendChild(createTableCell(itemsBought[i]["itemQuantity"]));
+
+          let itemPriceFloat = parseFloat(itemsBought[i]["itemPrice"]);
+          tr.appendChild(createTableCell(itemPriceFloat));
+
+          $("#detailsTable tbody").prepend(tr);
+        }
+        // const tax = document.createElement("tr");
+        // tax.appendChild(createTableCell(""));
+        // tax.appendChild(createTableCell(""));
+        // tax.appendChild(
+        //   createTableCell("TAX(12%):   " + transactionDetails["tax"])
+        // );
+
+        const totalCell = document.createElement("tr");
+        totalCell.appendChild(createTableCell(""));
+        totalCell.appendChild(createTableCell(""));
+        totalCell.appendChild(createTableCell(""));
+        totalCell.appendChild(
+          createTableCell("TOTAL:   " + transactionDetails["totalPrice"])
+        );
+
+        const payment = document.createElement("tr");
+        payment.appendChild(createTableCell(""));
+        payment.appendChild(createTableCell(""));
+        payment.appendChild(createTableCell(""));
+        payment.appendChild(
+          createTableCell("Cash:   " + transactionDetails["payment"])
+        );
+
+        const change = document.createElement("tr");
+        change.appendChild(createTableCell(""));
+        change.appendChild(createTableCell(""));
+        change.appendChild(createTableCell(""));
+        change.appendChild(
+          createTableCell("Change:   " + transactionDetails["change"])
+        );
+
+        // $("#detailsTable tbody").append(tax);
+        $("#detailsTable tbody").append(totalCell);
+        $("#detailsTable tbody").append(payment);
+        $("#detailsTable tbody").append(change);
+
+        $("#transactionContents").show();
+      },
+    });
+  }
+
+  $(document).on("submit", "#returnToInventory", function (e) {
+    e.preventDefault();
+    $.ajax({
+      type: "POST",
+      url: '{% url "ReturnToInventory" %}',
+      data: {
+        transkey: transactionKey,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (message) {
+        $("#transactionContents").hide();
+        $("#success-message").text(message);
+        $(".success-alert").addClass("show");
+        $(".success-alert").removeClass("hide");
+        $(".success-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".success-alert").removeClass("show");
+          $(".success-alert").addClass("hide");
+        }, 5000);
+      },
+      error: function (xhr, status, error) {
+        var errorMessage = xhr.responseText;
+        $("#error-message").text("An error occurred: " + errorMessage);
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
+      },
+    });
+  });
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onChildChanged,
+    onChildAdded,
+    query,
+    startAt,
+    push,
+    child,
+    orderByKey,
+  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKBm5kuT0f-hwVg3ecC6SjZTE4MMxfRi4",
+    authDomain: "maxweb-5ea84.firebaseapp.com",
+    databaseURL:
+      "https://maxweb-5ea84-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "maxweb-5ea84",
+    storageBucket: "maxweb-5ea84.appspot.com",
+    messagingSenderId: "765328893873",
+    appId: "1:765328893873:web:9546126eb532e9165fff90",
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase();
+  const reference = ref(db, "VoidedTransactions/");
+
+  const transactionTableContents = $("#reportTable");
+
+  let dataID;
+  const datatable = transactionTableContents.DataTable({
+    info: false,
+    order: [[1, "desc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3, 4, 5, 6, 7] },
+      { orderable: false, targets: [0, 4, 5, 7] },
+    ],
+    lengthMenu: [
+      [10, 25],
+      [10, 25],
+    ],
+    createdRow: (row, data, index) => {
+      $(row).find("td:eq(4)").addClass("danger");
+      $(row).find("td:eq(5)").addClass("success");
+      $(row).find("td:last-child").addClass("primary");
+      $(row).find("td:last-child").attr("id", dataID);
+    },
+  });
+
+  function createTableRowData(transData) {
+    return [
+      transData.transactionID,
+      transData.currentDate,
+      transData.currentTime,
+      transData.currentUser,
+      transData.status,
+      transData.itemStatus,
+      transData.totalPrice,
+      "<span class='material-symbols-outlined'> report </span>",
+    ];
+  }
+
+  let now = push(child(ref(db), "VoidedTransactions")).key;
+  const queryData = query(reference, orderByKey(), startAt(now));
+  onChildAdded(queryData, (data) => {
+    dataID = data.key;
+    const newRowData = createTableRowData(data.val());
+    datatable.row.add(newRowData).node().id = data.key + "0";
+    datatable.draw(false);
+  });
+
+  onChildChanged(reference, (data) => {
+    const newRowData = createTableRowData(data.val());
+    const row = datatable.row("#" + data.key + "0");
+    row.data(newRowData).draw(false);
+  });
+</script>
+{% endblock PageContents%}

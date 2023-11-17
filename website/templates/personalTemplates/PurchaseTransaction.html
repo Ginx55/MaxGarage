@@ -1,0 +1,698 @@
+{% extends 'navBar.html'%} {%load static%} {% block PageContents%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+
+<style>
+  #transTable button {
+    background: var(--color-white);
+    color: var(--color-dark);
+    border-radius: var(--border-radius-1);
+  }
+
+  .previews {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    text-align: center;
+    align-items: center;
+    height: 100%;
+  }
+  .parentContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%; /* Assuming the parent container has a height set */
+  }
+  .newScan {
+    background: var(--color-white);
+    border-radius: var(--card-border-radius);
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+    transition: all 300ms ease;
+    margin-bottom: 1.5rem;
+    height: 70%;
+    width: 100%;
+  }
+
+  .transInput {
+    display: grid;
+    grid-template-columns: 74% 26%;
+    gap: 15px;
+  }
+
+  /*RECEIPT DESIGN */
+  .receipt-table {
+    text-align: center;
+    border-top: 1px solid black;
+    border-collapse: collapse;
+  }
+
+  td.description,
+  th.description {
+    width: 75px;
+    max-width: 75px;
+  }
+
+  td.quantity,
+  th.quantity {
+    width: 40px;
+    max-width: 40px;
+    word-break: break-all;
+  }
+
+  td.price,
+  th.price {
+    width: 40px;
+    max-width: 40px;
+    word-break: break-all;
+  }
+
+  .centered {
+    text-align: center;
+    align-content: center;
+  }
+
+  .ticket {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    visibility: hidden;
+    font-size: 12px;
+    font-family: "Times New Roman";
+    width: 155px;
+    max-width: 155px;
+  }
+
+  @media print {
+    * {
+      visibility: hidden;
+      margin: 0;
+      padding: 0;
+    }
+
+    #printableArea * {
+      visibility: visible;
+    }
+  }
+
+  .row {
+    display: table;
+    width: 155px;
+    max-width: 155px;
+    table-layout: fixed;
+  }
+
+  .row p,
+  .row span {
+    display: table-cell;
+    padding: 0 1rem;
+    white-space: nowrap;
+    text-align: left;
+  }
+
+  .row p {
+    width: 35%;
+  }
+
+  .additional-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .additional-table-row {
+    display: table-row;
+  }
+
+  .additional-table-cell {
+    display: table-cell;
+    text-align: center;
+  }
+
+  .additional-table-cell.middle {
+    border: none;
+  }
+
+  /* Adjust the width of additional table cells based on the original table */
+  .additional-table .additional-table-cell:first-child {
+    width: 40px; /* Same as the width of quantity column in the original table */
+    max-width: 40px;
+    text-align: left;
+  }
+
+  .additional-table .additional-table-cell.middle {
+    width: 75px; /* Same as the width of description column in the original table */
+    max-width: 75px;
+  }
+
+  .additional-table .additional-table-cell:last-child {
+    width: 40px; /* Same as the width of price column in the original table */
+    max-width: 40px;
+  }
+</style>
+<main>
+  <div class="ticket" id="printableArea">
+    <p class="centered">
+      MAX GARAGE MOTORPARTS <br />Gov. F. Halili Avenue, Bagbaguin, Sta. Maria,
+      3022 Bulacan <br />
+      TIN NO: XXX-XXX-XXX
+    </p>
+
+    <div class="row">
+      <p>Date</p>
+      <span id="date"></span>
+    </div>
+    <div class="row">
+      <p>Time</p>
+      <span id="time"></span>
+    </div>
+    <div class="row">
+      <p>Ref no.</p>
+      <span id="ref-no"></span>
+    </div>
+    <div class="row">
+      <p>Customer</p>
+      <span id="customer-receipt"></span>
+    </div>
+    <div class="row">
+      <p>Cashier</p>
+      <span id="served-by"></span>
+    </div>
+
+    <br />
+    <table class="receipt-table" id="receipt">
+      <thead>
+        <tr>
+          <th class="quantity">Q.</th>
+          <th class="description">Item Name</th>
+          <th class="price">&#x20B1;</th>
+        </tr>
+      </thead>
+    </table>
+    <div class="additional-table">
+      <div class="additional-table-row">
+        <div class="additional-table-cell">TOTAL:</div>
+        <div class="additional-table-cell middle"></div>
+        <div class="additional-table-cell" id="trans-total"></div>
+      </div>
+      <div class="additional-table-row">
+        <div class="additional-table-cell">Cash:</div>
+        <div class="additional-table-cell middle"></div>
+        <div class="additional-table-cell" id="trans-cash"></div>
+      </div>
+      <div class="additional-table-row">
+        <div class="additional-table-cell">Change:</div>
+        <div class="additional-table-cell middle"></div>
+        <div class="additional-table-cell" id="trans-change"></div>
+      </div>
+    </div>
+    <br />
+    <p class="centered">Thanks for your purchase!</p>
+  </div>
+
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-symbols-sharp">menu</span>
+      </button>
+
+      <div class="theme-toggler">
+        <span class="material-symbols-sharp">light_mode</span>
+        <span class="material-symbols-sharp active">dark_mode</span>
+      </div>
+
+      <div class="profile">
+        <div class="info">
+          <p>Hi, <b>{{User}}</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+
+        <div class="profile-photo">
+          <img id="userProfile" alt="user" src="{{imageURL}}" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h1 class="topMargin">{{Title}}</h1>
+  <div class="TableContents">
+    <div class="transInput">
+      <div class="parentContainer">
+        <div class="newScan">
+          <div class="previews">
+            <h1 id="namePreview" value=""></h1>
+            <h1 id="quanPreview"></h1>
+            <h1 id="pricePreview"></h1>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="searchBarcode">
+          <form id="searchForm">
+            {% csrf_token %}
+            <input type="text" id="textbox" placeholder="  Barcode" />
+            <button type="submit">
+              <span class="material-symbols-outlined" id="search">search</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="searchBarcode">
+          <input
+            type="text"
+            id="customer-text"
+            placeholder="  Customer Name (Optional)"
+          />
+          <button type="submit">
+            <span class="material-symbols-outlined"> paid </span>
+          </button>
+
+          <form id="payment">
+            <input
+              type="number"
+              step="0.01"
+              id="paymentText"
+              placeholder="  Payment"
+            />
+            <button type="submit">
+              <span class="material-symbols-outlined"> paid </span>
+            </button>
+          </form>
+        </div>
+        <div style="text-align: left">
+          <h1 id="transaction-total">Total</h1>
+          <h1 id="transaction-change">Change</h1>
+        </div>
+      </div>
+    </div>
+
+    <table style="width: 100%" id="transTable">
+      <thead>
+        <tr>
+          <th>Item Name</th>
+          <th>Quantity</th>
+          <th>Price</th>
+          <th>Remove</th>
+        </tr>
+      </thead>
+    </table>
+    <br />
+    <form id="printReceipt">
+      {% csrf_token %}
+      <button class="receiptBTN">Print Receipt</button>
+    </form>
+  </div>
+</main>
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    let totalAmount = 0;
+    // let totalwithtax = 0;
+    let paymentAmount = 0;
+
+    function createTableCell(value, id, valueAttr, customAttr) {
+      const cell = document.createElement("td");
+      $(cell).text(value);
+      if (id != null) {
+        cell.setAttribute("id", id);
+      }
+      if (valueAttr != null) {
+        cell.setAttribute("value", valueAttr);
+      }
+
+      if (customAttr != null) {
+        cell.setAttribute("data-id", customAttr);
+      }
+      return cell;
+    }
+
+    function createButton(type, color, key, price) {
+      const button = document.createElement("button");
+      const buttonText = document.createTextNode(type);
+
+      const iconSpan = document.createElement("span");
+      iconSpan.className = "material-symbols-outlined";
+      iconSpan.style.color = color;
+      iconSpan.style.fontSize = "18px";
+
+      iconSpan.addEventListener("click", function () {
+        if (type === "add") {
+          increaseQuantity(key, price);
+        } else {
+          decreaseQuantity(key, price);
+        }
+      });
+
+      iconSpan.append(buttonText);
+      button.append(iconSpan);
+
+      return button;
+    }
+
+    function createQuantityButtons(quantity, key, price) {
+      const cell = document.createElement("td");
+      const quantitySpan = document.createElement("span");
+      const quantityText = document.createTextNode(
+        "\u00A0" + quantity + "\u00A0"
+      );
+      quantitySpan.append(quantityText);
+      quantitySpan.setAttribute("id", key + "2");
+
+      cell.append(createButton("remove", "#ff7782", key, price));
+      cell.append(quantitySpan);
+      cell.append(createButton("add", "#41f1b6", key, price));
+      return cell;
+    }
+
+    function removeTableRow(key) {
+      let totalPrice = Number($("#" + key + "3").text());
+      totalAmount -= totalPrice;
+      let convertedTotal = Math.round(totalAmount * 100) / 100;
+      // totalwithtax = (12 / 100) * convertedTotal;
+      // totalwithtax += totalAmount;
+
+      const element = document.getElementById(key);
+      $("#" + key).remove();
+
+      let previewValue = $("#namePreview").attr("value");
+      if (previewValue == key) {
+        $("#namePreview").text("");
+        $("#namePreview").attr("value", "");
+        $("#quanPreview").text("");
+        $("#pricePreview").text("");
+      }
+      $("#transaction-total").text("Total: " + convertedTotal);
+    }
+
+    function createRemoveButton(key) {
+      const span = document.createElement("span");
+      const removeText = document.createTextNode("delete");
+      span.className = "material-symbols-outlined";
+      span.style.fontSize = "18px";
+      span.style.color = "#ff7782";
+      span.append(removeText);
+
+      const cell = document.createElement("td");
+      cell.append(span);
+
+      span.addEventListener("click", function () {
+        removeTableRow(key);
+      });
+      return cell;
+    }
+
+    function createTableBody(id, appendTo) {
+      const tbody = document.createElement("tbody");
+      tbody.setAttribute("id", id);
+
+      document.querySelector(appendTo).append(tbody);
+    }
+
+    function increaseQuantity(key, price) {
+      let quantityText = Number($("#" + key + "2").text()) + 1;
+      $("#" + key + "2").text(quantityText);
+
+      let priceText = quantityText * price;
+      priceText = Math.round(priceText * 100) / 100;
+      $("#" + key + "3").text(priceText);
+
+      totalAmount += price;
+
+      let convertTotal = Math.round(totalAmount * 100) / 100;
+      // totalwithtax = (12 / 100) * convertTotal;
+      // totalwithtax += totalAmount;
+
+      $("#namePreview").text($("#" + key + "1").text());
+      $("#namePreview").attr("value", key);
+      $("#quanPreview").text(quantityText);
+      $("#pricePreview").text("Php: " + priceText);
+      $("#transaction-total").text("Total: " + convertTotal);
+    }
+
+    function decreaseQuantity(key, price) {
+      let quantityText = Number($("#" + key + "2").text()) - 1;
+      if (quantityText > 0) {
+        $("#" + key + "2").text(quantityText);
+
+        let priceText = quantityText * price;
+        priceText = Math.round(priceText * 100) / 100;
+        $("#" + key + "3").text(priceText);
+
+        totalAmount -= price;
+
+        $("#namePreview").text($("#" + key + "1").text());
+        $("#namePreview").attr("value", key);
+        $("#quanPreview").text(quantityText);
+        $("#pricePreview").text("Php: " + priceText);
+
+        let convertTotal = Math.round(totalAmount * 100) / 100;
+        // totalwithtax = (12 / 100) * convertTotal;
+        // totalwithtax += totalAmount;
+        $("#transaction-total").text("Total: " + convertTotal);
+      }
+    }
+
+    function handlePayment() {
+      paymentAmount = Math.round($("#paymentText").val() * 100) / 100;
+      // totalwithtax = (12 / 100) * totalAmount;
+      // totalwithtax += totalAmount;
+      if (paymentAmount >= totalAmount) {
+        let change = paymentAmount - totalAmount;
+        let convertedChange = Math.round(change * 100) / 100;
+        $("#transaction-change").text("Change: " + convertedChange);
+      } else {
+        $("#error-message").text("Error: Payment should be higher than total!");
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
+      }
+    }
+
+    function processTransaction() {
+      $("#receipt-body").remove();
+      if (totalAmount > 0) {
+        if (paymentAmount >= totalAmount) {
+          let transactionData = [];
+          const table = document.getElementById("transTable");
+          const tbody = document.createElement("tbody");
+          tbody.setAttribute("id", "receipt-body");
+          for (let x = 1; x < table.rows.length; x++) {
+            const cellObj = table.rows[x].cells;
+            const fixedID = $(cellObj[0]).attr("value");
+            const itemID = $(cellObj[0]).attr("data-id");
+            const itemName = cellObj[0].innerText;
+            const quantity = cellObj[1].innerText
+              .replace("remove", "")
+              .replace("add", "")
+              .trim();
+            const itemPrice = cellObj[2].innerText;
+
+            const items = {
+              fixedID,
+              itemID,
+              itemName,
+              itemQuantity: quantity,
+              itemPrice,
+            };
+
+            transactionData.push(items);
+          }
+
+          document.querySelector("#receipt").append(tbody);
+
+          let data = JSON.stringify(transactionData);
+          $.ajax({
+            type: "POST",
+            url: '{% url "InsertTransaction" %}',
+            data: {
+              customer: $("#customer-text").val(),
+              itemList: data,
+              payment: paymentAmount,
+              csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+            },
+            success: function (message) {
+              for (let item of message.itemsBought) {
+                let itemCode = item.itemCode;
+                let price = item.price;
+                let quantity = item.quantity;
+
+                const tr = document.createElement("tr");
+                tr.appendChild(createTableCell(quantity));
+                tr.appendChild(createTableCell(itemCode));
+                tr.appendChild(createTableCell(price));
+
+                $("#receipt-body").append(tr);
+              }
+              $("#trans-total").text(message["total"]);
+              $("#trans-cash").text(message["payment"]);
+              $("#trans-change").text(message["change"]);
+
+              $("#transactionBody").remove();
+              $("#textbox").val("");
+              $("#paymentText").val("");
+              $("#customer-text").val("");
+
+              $("#namePreview").text("");
+              $("#quanPreview").text("");
+              $("#pricePreview").text("");
+
+              $("#transaction-total").text("Total");
+              $("#transaction-change").text("Change");
+
+              $("#date").text(": " + message["date"]);
+              $("#time").text(": " + message["time"]);
+              $("#ref-no").text(": " + message["ref"]);
+              $("#customer-receipt").text(": " + message["customer"]);
+              $("#served-by").text(": " + message["cashier"]);
+
+              totalAmount = 0;
+              paymentAmount = 0;
+              window.print();
+              $("#receipt-body").remove();
+              $("#date").text("");
+              $("#time").text("");
+              $("#ref-no").text("");
+              $("#customer-receipt").text("");
+              $("#served-by").text("");
+
+              $("#success-message").text(
+                "Success: Transaction has been inserted successfully!"
+              );
+              $(".success-alert").addClass("show");
+              $(".success-alert").removeClass("hide");
+              $(".success-alert").addClass("showAlert");
+              setTimeout(function () {
+                $(".success-alert").removeClass("show");
+                $(".success-alert").addClass("hide");
+              }, 5000);
+            },
+          });
+        } else {
+          $("#error-message").text(
+            "Error: Payment should be higher than total!"
+          );
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
+        }
+      } else {
+        $("#error-message").text("Error: No current transaction!");
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
+      }
+    }
+
+    // Event handlers
+    $(document).on("submit", "#searchForm", function (e) {
+      e.preventDefault();
+      $.ajax({
+        type: "POST",
+        url: '{% url "SearchItem" %}',
+        data: {
+          textbox: $("#textbox").val(),
+          csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+        },
+        success: function (itemDetails) {
+          if (itemDetails != "Cannot find item") {
+            const tableBody = document.getElementById("transactionBody");
+            if (tableBody == null) {
+              createTableBody("transactionBody", "#transTable");
+            }
+            let element = document.getElementById(itemDetails["itemKey"] + "1");
+            if (element != null) {
+              let itemKey = "#" + itemDetails["itemKey"];
+
+              let quantity = Number($(itemKey + "2").text()) + 1;
+              let price = itemDetails["itemPrice"] * quantity;
+              price = Math.round(price * 100) / 100;
+              totalAmount += itemDetails["itemPrice"];
+
+              $(itemKey + "2").text(quantity);
+              $(itemKey + "3").text(price);
+
+              $("#namePreview").text(itemDetails["itemName"]);
+              $("#quanPreview").text(quantity);
+              $("#pricePreview").text("Php: " + price);
+            } else {
+              const row = document.createElement("tr");
+
+              let cellKey = itemDetails["itemKey"];
+              let fixedID = itemDetails["fixedID"];
+              let itemID = itemDetails["itemID"];
+              let itemName = itemDetails["itemName"];
+              let itemPrice = itemDetails["itemPrice"];
+              let itemQuantity = itemDetails["itemQuantity"];
+
+              $("#namePreview").text(itemName);
+              $("#namePreview").attr("value", cellKey);
+              $("#quanPreview").text("1");
+              $("#pricePreview").text("Php: " + itemPrice);
+
+              row.setAttribute("id", cellKey);
+
+              row.appendChild(
+                createTableCell(itemName, cellKey + "1", fixedID, itemID)
+              );
+              row.appendChild(createQuantityButtons("1", cellKey, itemPrice));
+              row.appendChild(createTableCell(itemPrice, cellKey + "3"));
+              row.append(createRemoveButton(cellKey));
+              totalAmount += itemDetails["itemPrice"];
+
+              document.querySelector("#transTable tbody").prepend(row);
+            }
+            let convertedTotal = Math.round(totalAmount * 100) / 100;
+            // totalwithtax = (12 / 100) * convertedTotal;
+            // totalwithtax += totalAmount;
+            $("#transaction-total").text("Total: " + convertedTotal);
+            $("#textbox").val("");
+          } else {
+            $("#textbox").val("");
+            $("#error-message").text(itemDetails);
+            $(".error-alert").addClass("show");
+            $(".error-alert").removeClass("hide");
+            $(".error-alert").addClass("showAlert");
+            setTimeout(function () {
+              $(".error-alert").removeClass("show");
+              $(".error-alert").addClass("hide");
+            }, 5000);
+          }
+        },
+        error: function (error) {
+          $("#textbox").val("");
+          $("#error-message").text("Error: Unexpected Error");
+          $(".error-alert").addClass("show");
+          $(".error-alert").removeClass("hide");
+          $(".error-alert").addClass("showAlert");
+          setTimeout(function () {
+            $(".error-alert").removeClass("show");
+            $(".error-alert").addClass("hide");
+          }, 5000);
+        },
+      });
+    });
+
+    $(document).on("submit", "#payment", function (e) {
+      e.preventDefault();
+      handlePayment();
+    });
+
+    $(document).on("submit", "#printReceipt", function (e) {
+      e.preventDefault();
+      processTransaction();
+    });
+  });
+</script>
+{% endblock PageContents%}

@@ -1,0 +1,253 @@
+{% extends 'navBar.html'%} {%load static%} {% block PageContents%}
+<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+<style>
+  .actDetails {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30%;
+    background-color: var(--color-background);
+    border: 3px solid var(--color-dark-variant);
+    padding: 5px;
+    display: none;
+    border-radius: var(--border-radius-1);
+  }
+
+  .closeButton {
+    float: right;
+    background-color: var(--color-background);
+    color: var(--color-dark);
+  }
+
+  .transLabels {
+    font-size: 15px;
+    gap: 5x;
+  }
+</style>
+<main>
+  <div class="right">
+    <div class="top">
+      <button id="menu-btn">
+        <span class="material-symbols-sharp">menu</span>
+      </button>
+
+      <div class="theme-toggler">
+        <span class="material-symbols-sharp">light_mode</span>
+        <span class="material-symbols-sharp active">dark_mode</span>
+      </div>
+
+      <div class="profile">
+        <div class="info">
+          <p>Hi, <b>{{User}}</b></p>
+          <small class="text-muted">Admin</small>
+        </div>
+
+        <div class="profile-photo">
+          <img id="userProfile" alt="user" src="{{imageURL}}" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <h1>{{Title}}</h1>
+
+  <div class="TableContents">
+    <table id="activityTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Role</th>
+          <th>User</th>
+          <th>Actions Made</th>
+          <th>Info</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in ActivityList.items %}
+        <tr>
+          <td>{{value.dateCreated}}</td>
+          <td>{{value.timeCreated}}</td>
+          <td>{{value.role}}</td>
+          <td>{{value.currentUser}}</td>
+          <td class="{{value.class}}">{{value.actionsMade}}</td>
+          <td class="primary" id="{{key}}">
+            <span class="material-symbols-outlined">report </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div id="actDetails" class="actDetails">
+  <button class="closeButton" onclick="closeDetails()">
+    <span class="material-symbols-outlined"> close </span>
+  </button>
+  <br />
+  <div id="activityDetails" class="transLabels">
+    <b> Date: </b> <span id="date"></span><br />
+    <b> Time: </b> <span id="time"></span><br />
+    <b> User: </b> <span id="user"></span><br />
+    <b> Role: </b> <span id="role"></span><br />
+    <b> Actions Made: </b> <span id="action"></span><br />
+    <br />
+    <b> Info: </b> <span id="info"></span><br />
+  </div>
+</div>
+
+<script>
+  $("#activityTable tbody").on("click", "td:last-child", function () {
+    let data = $(this).attr("id");
+    viewDetails(data);
+  });
+
+  function createDetails(title, value) {
+    const b = document.createElement("b");
+    $(b).text(title + ":");
+
+    const span = document.createElement("span");
+    $(span).text("\u00A0\u00A0" + value);
+
+    const br = document.createElement("br");
+
+    if (title == "itemName") {
+      document.querySelector("#activityList").prepend(br);
+      document.querySelector("#activityList").prepend(span);
+      document.querySelector("#activityList").prepend(b);
+    } else {
+      document.querySelector("#activityList").append(b);
+      document.querySelector("#activityList").append(span);
+      document.querySelector("#activityList").append(br);
+    }
+  }
+
+  function closeDetails() {
+    $("#date").text("");
+    $("#time").text("");
+    $("#user").text("");
+    $("#role").text("");
+    $("#action").text("");
+
+    $("#actDetails").hide();
+    $("#activityList").remove();
+  }
+
+  function viewDetails(key) {
+    $.ajax({
+      type: "POST",
+      url: '{% url "ViewSystemActivities" %}',
+      data: {
+        activityKey: key,
+        csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+      },
+      success: function (activityData) {
+        const element = document.getElementById("activityList");
+        if (element != null) {
+          element.remove();
+        }
+        $("#date").text("\u00A0\u00A0" + activityData["dateCreated"]);
+        $("#time").text("\u00A0\u00A0" + activityData["timeCreated"]);
+        $("#user").text("\u00A0\u00A0" + activityData["currentUser"]);
+        $("#role").text("\u00A0\u00A0" + activityData["role"]);
+        $("#action").text("\u00A0\u00A0" + activityData["actionsMade"]);
+
+        const div = document.createElement("div");
+        div.setAttribute("id", "activityList");
+        document.querySelector("#activityDetails").append(div);
+
+        activities = activityData["updatedValues"];
+        for (const key in activities) {
+          createDetails(key, activities[key]);
+        }
+        $("#actDetails").show();
+      },
+    });
+  }
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onChildChanged,
+    onChildAdded,
+    onChildRemoved,
+    query,
+    startAt,
+    push,
+    child,
+    orderByKey,
+  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKBm5kuT0f-hwVg3ecC6SjZTE4MMxfRi4",
+    authDomain: "maxweb-5ea84.firebaseapp.com",
+    databaseURL:
+      "https://maxweb-5ea84-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "maxweb-5ea84",
+    storageBucket: "maxweb-5ea84.appspot.com",
+    messagingSenderId: "765328893873",
+    appId: "1:765328893873:web:9546126eb532e9165fff90",
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase();
+  const reference = ref(db, "SystemActivities/");
+
+  const activityTableContents = $("#activityTable");
+
+  let dataID;
+  let activityClass;
+  const datatable = activityTableContents.DataTable({
+    info: false,
+    order: [[0, "desc"]],
+    columnDefs: [
+      { className: "dt-center", targets: [0, 1, 2, 3, 4, 5] },
+      { orderable: false, targets: [5] },
+    ],
+    lengthMenu: [
+      [10, 25],
+      [10, 25],
+    ],
+    createdRow: (row, data, index) => {
+      $(row).find("td:eq(4)").addClass(activityClass);
+      $(row).find("td:last-child").addClass("primary");
+      $(row).find("td:last-child").attr("id", dataID);
+    },
+  });
+
+  function createTableRowData(activityData) {
+    return [
+      activityData.dateCreated,
+      activityData.timeCreated,
+      activityData.role,
+      activityData.currentUser,
+      activityData.actionsMade,
+      "<span class='material-symbols-outlined'> report </span>",
+    ];
+  }
+
+  let now = push(child(ref(db), "SystemActivities")).key;
+  const queryData = query(reference, orderByKey(), startAt(now));
+  onChildAdded(queryData, (data) => {
+    dataID = data.key;
+    const activityData = data.val();
+    const action = activityData.actionsMade;
+    if (action.includes("voided") || action.includes("removed")) {
+      activityClass = "danger";
+    } else if (action.includes("restored") || action.includes("added")) {
+      activityClass = "success";
+    } else if (action.includes("updated")) {
+      activityClass = "warning";
+    } else {
+      activityClass = "";
+    }
+    const newRowData = createTableRowData(activityData);
+    datatable.row.add(newRowData);
+    datatable.draw(false);
+  });
+</script>
+
+{% endblock PageContents%}
