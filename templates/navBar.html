@@ -525,7 +525,7 @@
       </div>
     </div>
 
-    <div class="custom-error-alert alert hide">
+    <div class="custom-error-alert notif hide">
       <span class="fas fa-exclamation-circle"></span>
       <span class="msg" id="custom-error-message">About to Expire!</span>
       <div class="close-btn">
@@ -533,7 +533,7 @@
       </div>
     </div>
 
-    <div class="custom-warning-alert alert hide">
+    <div class="custom-warning-alert notif hide">
       <span class="fas fa-exclamation-circle"></span>
       <span class="msg" id="custom-warning-message">About to Expire!</span>
       <div class="close-btn">
@@ -546,8 +546,8 @@
   <script src="{% static 'js/JsBarcode.all.min.js' %}"></script>
   <script>
     function showAlert(alertType, message, notificationCondition) {
-      $(".custom-error-alert").css("top", "10px");
-      $(".custom-warning-alert").css("top", "10px");
+      $(".custom-error-alert").css("bottom", "10px");
+      $(".custom-warning-alert").css("bottom", "10px");
 
       const alertElement =
         alertType === "error"
@@ -569,13 +569,21 @@
           alertElement.addClass("hide");
         }, 300000);
       }
-      if ($(".custom-warning-alert").hasClass("show")) {
-        $(".custom-warning-alert").css("top", "85px");
-      }
-      if ($(".custom-error-alert").hasClass("show")) {
-        $(".custom-error-alert").css("top", "85px");
+      if (alertType === "error") {
+        if ($(".custom-warning-alert").hasClass("show")) {
+          $(".custom-warning-alert").css("bottom", "85px");
+        }
+      } else {
+        if ($(".custom-error-alert").hasClass("show")) {
+          $(".custom-error-alert").css("bottom", "85px");
+        }
       }
     }
+
+    $(".close-btn").click(function () {
+      $(".notif").removeClass("show");
+      $(".notif").addClass("hide");
+    });
   </script>
   <script type="text/javascript">
     function openPopUp(id) {
@@ -900,13 +908,6 @@
         imagePreview.src = "";
       }
     }
-
-    $(".close-btn").click(function () {
-      $(".alert").removeClass("show");
-      $(".alert").addClass("hide");
-    });
   </script>
-
-  <script type="module"></script>
   <script src="{%static 'js/navBarScript.js'%}"></script>
 </html>

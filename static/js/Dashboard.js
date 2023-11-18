@@ -348,24 +348,6 @@ function expiryDataChecker(expiryDateParams) {
 onChildChanged(reference, (data) => {
   const itemData = data.val();
 
-  // if (itemData.expiryDate) {
-  //   const dataObject = expiryDataChecker(itemData.expiryDate);
-  //   const expiryClass = dataObject.class;
-
-  //   if (expiryClass == "warning" && itemData.expiryNotif) {
-  //     $("#warning-message").text(
-  //       "Expiry warning for item: " + itemData.itemName
-  //     );
-  //     $(".warning-alert").addClass("show");
-  //     $(".warning-alert").removeClass("hide");
-  //     $(".warning-alert").addClass("showAlert");
-  //     setTimeout(function () {
-  //       $(".warning-alert").removeClass("show");
-  //       $(".warning-alert").addClass("hide");
-  //     }, 300000);
-  //   }
-  // }
-
   const quantityClass = addTableItemClass(itemData);
   if (quantityClass == "danger" && itemData.criticalNotif) {
     showAlert(

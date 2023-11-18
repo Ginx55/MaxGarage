@@ -661,5 +661,87 @@
     const row = datatable.row("#" + data.key + "0");
     row.data(newRowData).draw(false);
   });
+
+  const itemreference = ref(db, "Items/");
+  function addTableItemClass(itemData) {
+    const { itemQuantity, itemCriticalQuantity, itemMaxQuantity } = itemData;
+    let className = "";
+    if (itemQuantity <= itemCriticalQuantity) {
+      className = "danger";
+    } else if (itemQuantity > itemMaxQuantity) {
+      className = "warning";
+    }
+    return className;
+  }
+
+  function expiryDataChecker(expiryDateParams) {
+    const expiryList = expiryDateParams.map((expiryData) => ({
+      notify: Number(expiryData.notify),
+      date: new Date(expiryData.date),
+    }));
+
+    expiryList.sort((date1, date2) => date1.date - date2.date);
+
+    let firstAboutToExpire = null;
+    let className = null;
+
+    if (expiryList.length > 0) {
+      const today = new Date();
+
+      for (const expiryData of expiryList) {
+        const expiryDate = expiryData.date.toISOString().slice(0, 10);
+
+        if (expiryData.date > today) {
+          const aboutToExpire = new Date(expiryData.date);
+          aboutToExpire.setDate(aboutToExpire.getDate() - expiryData.notify);
+
+          if (
+            aboutToExpire <= today &&
+            (!firstAboutToExpire || expiryData.date > firstAboutToExpire)
+          ) {
+            className = "warning";
+            firstAboutToExpire = expiryDate;
+          }
+        } else {
+          className = "danger";
+          if (!firstAboutToExpire || expiryData.date > firstAboutToExpire) {
+            firstAboutToExpire = expiryDate;
+          }
+        }
+      }
+
+      if (!firstAboutToExpire) {
+        firstAboutToExpire = expiryList[0].date.toISOString().slice(0, 10);
+      }
+    } else {
+      firstAboutToExpire = "";
+    }
+
+    let dataObject = {
+      expiry: firstAboutToExpire,
+      class: className,
+    };
+
+    return dataObject;
+  }
+
+  onChildChanged(itemreference, (data) => {
+    const itemData = data.val();
+
+    const quantityClass = addTableItemClass(itemData);
+    if (quantityClass == "danger" && itemData.criticalNotif) {
+      showAlert(
+        "error",
+        "An item has reached a critical level",
+        itemData.criticalNotif
+      );
+    } else if (quantityClass == "warning" && itemData.overStockNotif) {
+      showAlert(
+        "warning",
+        "An item has reached an overstocked level",
+        itemData.overStockNotif
+      );
+    }
+  });
 </script>
 {% endblock PageContents%}

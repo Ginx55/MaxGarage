@@ -276,7 +276,7 @@
   min-width: 420px;
   position: fixed;
   right: 0;
-  top: 10px;
+  bottom: 10px;
   border-radius: 4px;
   border-left: 8px solid #e74c3c;
   overflow: hidden;
@@ -369,7 +369,7 @@
   min-width: 420px;
   position: fixed;
   right: 0;
-  top: 10px;
+  bottom: 10px;
   border-radius: 4px;
   border-left: 8px solid #ffc107; /* Yellowish border for warning */
   overflow: hidden;
