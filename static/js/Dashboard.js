@@ -368,38 +368,16 @@ onChildChanged(reference, (data) => {
 
   const quantityClass = addTableItemClass(itemData);
   if (quantityClass == "danger" && itemData.criticalNotif) {
-    $("#custom-error-message").text("An item has reached a critical level");
-    $(".custom-alert").addClass("show");
-    $(".custom-alert").removeClass("hide");
-    $(".custom-alert").addClass("showAlert");
-    setTimeout(function () {
-      $(".custom-alert").removeClass("show");
-      $(".custom-alert").addClass("hide");
-    }, 300000);
-
-    // Adjust position of Warning alert if it is displayed
-    if ($(".custom-warning-alert").hasClass("show")) {
-      $(".custom-warning-alert").css("top", "85px"); // Adjust the top position as needed
-    } else {
-      $(".custom-warning-alert").css("top", "10px"); // Adjust the top position as needed
-    }
-  } else if (quantityClass == "warning" && itemData.overStockNotif) {
-    $("#custom-warning-message").text(
-      "An item has reached an overstocked level"
+    showAlert(
+      "error",
+      "An item has reached a critical level",
+      itemData.criticalNotif
     );
-    $(".custom-warning-alert").addClass("show");
-    $(".custom-warning-alert").removeClass("hide");
-    $(".custom-warning-alert").addClass("showAlert");
-    setTimeout(function () {
-      $(".custom-warning-alert").removeClass("show");
-      $(".custom-warning-alert").addClass("hide");
-    }, 300000);
-
-    // Adjust position of Error alert if it is displayed
-    if ($(".custom-error-alert").hasClass("show")) {
-      $(".custom-error-alert").css("top", "85px"); // Adjust the top position as needed
-    } else {
-      $(".custom-error-alert").css("top", "10px"); // Adjust the top position as needed
-    }
+  } else if (quantityClass == "warning" && itemData.overStockNotif) {
+    showAlert(
+      "warning",
+      "An item has reached an overstocked level",
+      itemData.overStockNotif
+    );
   }
 });
