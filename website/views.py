@@ -33,8 +33,13 @@ db = firebase.database()
 storage = firebase.storage()
 # Create your views here.
 
-def send_email(subject_message ,email_message):
-    recipient_list = db.child("Users").order_by_child("status").equal_to(True).get().val()
+def send_email(subject_message, email_message):
+    recipient_list = []
+    user_data_list = db.child("Users").order_by_child("status").equal_to(True).get().val()
+
+    for user_data in user_data_list.values():
+        recipient_list.append(user_data['email'])
+
     subject = subject_message
     message = email_message
     from_email = 'mxgmotorparts@gmail.com'
