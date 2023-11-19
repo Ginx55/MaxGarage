@@ -1065,8 +1065,8 @@ def remove_item(request):
             remove_data("Items", item_key)
 
             remove_value = {
-                "itemID": item['itemID'],
-                "itemName": item['itemName'],
+                "Barcode": item['itemID'],
+                "Item Name": item['itemName'],
             }
 
             add_system_activities(request, "removed an item", remove_value)

@@ -24,6 +24,11 @@
     font-size: 15px;
     gap: 5x;
   }
+
+  #activityDetails {
+    max-height: 200px; /* Set your desired maximum height */
+    overflow: auto; /* Enable both horizontal and vertical scrolling if needed */
+  }
 </style>
 <main>
   <div class="right">
@@ -92,13 +97,15 @@
     <span class="material-symbols-outlined"> close </span>
   </button>
   <br />
-  <div id="activityDetails" class="transLabels">
+  <div class="transLabels">
     <b> Date: </b> <span id="date"></span><br />
     <b> Time: </b> <span id="time"></span><br />
     <b> User: </b> <span id="user"></span><br />
     <b> Role: </b> <span id="role"></span><br />
     <b> Actions Made: </b> <span id="action"></span><br />
     <br />
+    <b>Info:</b><br /><br />
+    <div id="activityDetails"></div>
   </div>
 </div>
 
@@ -117,7 +124,7 @@
     // Append elements to the activityList div
     const activityList = document.getElementById("activityList");
     if (activityList != null) {
-      activityList.append(b, br);
+      activityList.append(br, b);
 
       // Create a single span with the value
       const spanValue = document.createElement("span");
