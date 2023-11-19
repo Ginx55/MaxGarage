@@ -128,6 +128,7 @@ def Dashboard(request):
     user_data_key = list(user_data.keys())[0]
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
     
     if request.session['role'] == 'Cashier':
@@ -174,6 +175,7 @@ def Dashboard(request):
         "data": data,
         "topItemSold": topItemsSold,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
 
     return render(request, "personalTemplates/Dashboard.html", data)
@@ -191,6 +193,7 @@ def PurchaseTransaction(request):
     user_data_key = list(user_data.keys())[0]
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
 
     data = {
@@ -199,6 +202,7 @@ def PurchaseTransaction(request):
         "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
         "salesClass" : True,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
     return render(request, "personalTemplates/PurchaseTransaction.html", data)
 
@@ -370,6 +374,17 @@ def insert_transaction(request):
 def TransactionLog(request):
     if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
+    request.session['uid'] = local_id
 
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
 
@@ -398,6 +413,7 @@ def TransactionLog(request):
         "topItemSold": topItemsSold,
         "salesClass" : True,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
 
     return render(request, "personalTemplates/TransactionLog.html", data)
@@ -510,6 +526,17 @@ def VoidedTransactions(request):
     if not request.session.get('sessionID'):
         return redirect('LogIn')
     
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
+    request.session['uid'] = local_id
+
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     transactionList = db.child("VoidedTransactions").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
     data = {
@@ -519,6 +546,7 @@ def VoidedTransactions(request):
         "TransactionList" : transactionList,
         "salesClass" : True,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
     return render(request, "personalTemplates/VoidedTransactions.html", data)
 
@@ -932,6 +960,18 @@ def item_list(request):
     if not request.session.get('sessionID'):
         return redirect('LogIn')
     
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
+    request.session['uid'] = local_id
+
+    
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
     item_list = db.child("Items").order_by_child("negaIntDate").start_at(nega_int).limit_to_first(10).get().val()
 
@@ -961,6 +1001,7 @@ def item_list(request):
         "Items": item_list,
         "itemClass": True,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
     return render(request, "personalTemplates/ItemList.html", data)
 
@@ -1031,6 +1072,18 @@ def Return(request):
     if not request.session.get('sessionID'):
         return redirect('LogIn')
     
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
+    request.session['uid'] = local_id
+
+    
     negaInt  = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     returnList = db.child("Return").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
     data = {
@@ -1039,6 +1092,7 @@ def Return(request):
         "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
         "ReturnList" : returnList,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
     return render(request, "personalTemplates/Return.html", data)
 
@@ -1254,6 +1308,7 @@ def SystemActivities(request):
     user_data_key = list(user_data.keys())[0]
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
     
     if request.session['role'] != 'Admin':
@@ -1279,6 +1334,7 @@ def SystemActivities(request):
         "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
         "ActivityList" : activityList,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
     return render(request, "personalTemplates/SystemActivities.html", data)
 
@@ -1338,7 +1394,9 @@ def RecycleBin(request):
     user_data_key = list(user_data.keys())[0]
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+
     
     if request.session['role'] == 'Cashier':
         raise Http404("You do not have permission to access this page.")
@@ -1351,6 +1409,7 @@ def RecycleBin(request):
         "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
         "BinList": binList,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
     return render(request, "personalTemplates/RecycleBin.html", data)
 
@@ -1367,7 +1426,9 @@ def UserList(request):
     user_data_key = list(user_data.keys())[0]
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+
     
     if request.session['role'] != 'Admin':
         raise Http404("You do not have permission to access this page.")
@@ -1380,6 +1441,7 @@ def UserList(request):
         "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
         "UserList" : userList,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
     return render(request, "personalTemplates/UserList.html", data)
 
@@ -1705,6 +1767,18 @@ def CriticalQuantities(request):
     if not request.session.get('sessionID'):
         return redirect('LogIn')
     
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
+    request.session['uid'] = local_id
+
+    
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
     filtered_items = {
         key: item for key, item in db.child("Items").order_by_child("negaIntDate").start_at(nega_int).get().val().items()
@@ -1735,6 +1809,7 @@ def CriticalQuantities(request):
         "CriticalList": filtered_items,
         "itemClass": True,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
     return render(request, "personalTemplates/CriticalQuantities.html", data)
 
@@ -1742,6 +1817,17 @@ def CriticalQuantities(request):
 def AboutToExpire(request):
     if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['mode'] = user_data[user_data_key]['mode']
+    request.session['uid'] = local_id
     
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
     item_list = db.child("Items").order_by_child("negaIntDate").start_at(nega_int).get().val()
@@ -1779,6 +1865,7 @@ def AboutToExpire(request):
         "AboutToExpire": filtered_items,
         "itemClass": True,
         "role" : request.session['role'],
+        "mode" : request.session['mode'],
     }
     
     return render(request, "personalTemplates/AboutToExpire.html", data)
@@ -2059,3 +2146,27 @@ def check_quantities(delay):
 
         for item_key, update_data in item_updates.items():
             db.child("Items").child(item_key).update(update_data)
+
+def color_modes(request):
+    try:
+        if not request.session.get('sessionID'):
+            return redirect('LogIn')
+        
+        user = authentication.get_account_info(request.session.get('sessionID'))
+        local_id = user['users'][0]['localId']
+        user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+
+        user_data_key = list(user_data.keys())[0]
+
+        request.session['username'] = user_data[user_data_key]['username']
+        request.session['role'] = user_data[user_data_key]['role']
+        request.session['uid'] = local_id
+
+        if request.method == 'POST':
+            mode = request.POST.get('mode')
+            db.child("Users").child(user_data_key).update({"mode": mode})
+            return JsonResponse({"status": "success"})
+        
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    

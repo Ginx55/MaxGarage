@@ -73,4 +73,6 @@ urlpatterns = [
     path('CriticalQuantities/', views.CriticalQuantities, name="CriticalQuantities"),
     path('AboutToExpire/', views.AboutToExpire, name="AboutToExpire"),
     path('getItemData/', views.getItemData, name="getItemData"),
+
+    path('color-mode/', views.color_modes, name="color_modes"),
 ]

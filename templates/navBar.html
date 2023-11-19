@@ -170,6 +170,13 @@
     </style>
   </head>
   <body>
+    <script>
+      const mode = "{{mode}}";
+      if (mode == "Dark Mode") {
+        $("body").toggleClass("dark-theme-variables");
+      }
+    </script>
+
     <div class="container">
       <aside>
         <!-- logo -->
@@ -586,6 +593,38 @@
       $(".alert").removeClass("show");
       $(".alert").addClass("hide");
     });
+
+    $(document).on("click", ".theme-toggler", function () {
+      $("body").toggleClass("dark-theme-variables");
+
+      $(this)
+        .find("span:nth-child(1), span:nth-child(2)")
+        .toggleClass("active");
+
+      const isFirstSpanActive = $(this)
+        .find("span:nth-child(1)")
+        .hasClass("active");
+      const isSecondSpanActive = $(this)
+        .find("span:nth-child(2)")
+        .hasClass("active");
+
+      const mode = isFirstSpanActive ? "Light Mode" : "Dark Mode";
+
+      $.ajax({
+        type: "POST",
+        url: '{% url "color_modes" %}',
+        data: {
+          mode: mode,
+          csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+        },
+        success: function (response) {
+          // Handle success response
+        },
+        error: function (xhr, status, response) {
+          // Handle error
+        },
+      });
+    });
   </script>
   <script type="text/javascript">
     function openPopUp(id) {
@@ -911,5 +950,4 @@
       }
     }
   </script>
-  <script src="{%static 'js/navBarScript.js'%}"></script>
 </html>

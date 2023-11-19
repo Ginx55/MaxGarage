@@ -72,8 +72,14 @@
       </button>
 
       <div class="theme-toggler">
-        <span class="material-symbols-sharp active">light_mode</span>
-        <span class="material-symbols-sharp">dark_mode</span>
+        <span
+          class="material-symbols-sharp {% if mode == 'Light Mode' %}active{% endif %}"
+          >light_mode</span
+        >
+        <span
+          class="material-symbols-sharp {% if mode == 'Dark Mode' %}active{% endif %}"
+          >dark_mode</span
+        >
       </div>
 
       <div class="profile">
