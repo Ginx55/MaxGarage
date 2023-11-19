@@ -113,14 +113,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 100px;
+    gap: 2rem;
+    margin: 20px; /* Adjust margin as needed */
   }
 
   .chartBorder {
+    width: 50%;
     background: var(--color-white);
     padding: var(--card-padding);
     border-radius: var(--card-border-radius);
     box-shadow: var(--box-shadow);
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
   }
 
   .tableFixHead img {
@@ -159,11 +166,11 @@
   <h1>{{Title}}</h1>
   <div class="TableContents">
     <div class="chartHolder">
-      <div style="width: 35%" class="chartBorder">
-        <canvas id="weeklySales" height="100" width="100"></canvas>
+      <div class="chartBorder">
+        <canvas id="weeklySales"></canvas>
       </div>
-      <div style="width: 35%" class="chartBorder">
-        <canvas id="topItems" height="100" width="100"></canvas>
+      <div class="chartBorder">
+        <canvas id="topItems"></canvas>
       </div>
     </div>
 
@@ -336,19 +343,29 @@
         labels: labelsTopItems,
         datasets: [
           {
-            label: "Top 5 best sellers",
+            label: "Top 5 Best-Selling Items",
             data: dataTopItems,
             backgroundColor: [
-              "#3498db",
-              "#2ecc71",
-              "#e74c3c",
-              "#9b59b6",
-              "#e67e22",
-              "#f1c40f",
-              "#1abc9c",
+              "#3498db", // Blue
+              "#2ecc71", // Green
+              "#e74c3c", // Red
+              "#8e44ad", // Purple
+              "#f39c12",
             ],
           },
         ],
+      },
+      options: {
+        plugins: {
+          legend: {
+            labels: {
+              // This more specific font property overrides the global property
+              font: {
+                size: 20,
+              },
+            },
+          },
+        },
       },
     });
   })();
@@ -382,6 +399,18 @@
             ],
           },
         ],
+      },
+      options: {
+        plugins: {
+          legend: {
+            labels: {
+              // This more specific font property overrides the global property
+              font: {
+                size: 20,
+              },
+            },
+          },
+        },
       },
     });
   })();
