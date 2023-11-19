@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib import auth
 from django.core.mail import EmailMessage
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, Http404
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 
@@ -117,8 +117,21 @@ def send_forgot_pass(request):
 
 # Dashboard
 def Dashboard(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] == 'Cashier':
+        raise Http404("You do not have permission to access this page.")
     
     thread = threading.Thread(target=check_quantities, args=(5,))
     thread.start()
@@ -167,9 +180,19 @@ def Dashboard(request):
 
 # Sales
 def PurchaseTransaction(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+
     data = {
         "Title" : "Purchase Transaction",
         "User" : request.session['username'],
@@ -180,7 +203,7 @@ def PurchaseTransaction(request):
     return render(request, "personalTemplates/PurchaseTransaction.html", data)
 
 def SearchItem(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     if request.method == 'POST':
@@ -242,7 +265,7 @@ def generate_transaction_id():
     return transaction_id
 
 def insert_transaction(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     if request.method == 'POST':
@@ -345,7 +368,7 @@ def insert_transaction(request):
             return JsonResponse({"message": str(e)}, status=500)
 
 def TransactionLog(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
 
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
@@ -380,7 +403,7 @@ def TransactionLog(request):
     return render(request, "personalTemplates/TransactionLog.html", data)
 
 def TransactionDetails(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     if request.method == 'POST':
@@ -393,7 +416,7 @@ def TransactionDetails(request):
         return JsonResponse(transaction)
 
 def VoidTransaction(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     if request.method == 'POST':
@@ -443,8 +466,21 @@ def Date(dateData):
         return None
 
 def GetSalesReport(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] == 'Cashier':
+        raise Http404("You do not have permission to access this page.")
     
     if request.method == 'POST':
         startDate = request.POST.get('startDate')
@@ -471,7 +507,7 @@ def GetSalesReport(request):
         return JsonResponse({"error": "Invalid request method. Only POST requests are allowed."}, status=405)
 
 def VoidedTransactions(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
@@ -487,7 +523,7 @@ def VoidedTransactions(request):
     return render(request, "personalTemplates/VoidedTransactions.html", data)
 
 def VoidedDetails(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     if request.method == 'POST':
@@ -512,7 +548,7 @@ def get_item_details_return(item_id, fixed_id):
     return None, None
 
 def ReturnToInventory(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     if request.method == 'POST':
@@ -617,8 +653,21 @@ def generate_item_code(word):
     return first_letter + without_vowels
 
 def add_item(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] == 'Cashier':
+        raise Http404("You do not have permission to access this page.")
     
     try:
         if request.method == 'POST':
@@ -701,8 +750,21 @@ def add_item(request):
         return JsonResponse({"message": "An error occurred", "error": str(e)}, status=500)
 
 def EditItem(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] == 'Cashier':
+        raise Http404("You do not have permission to access this page.")
     
     if request.method == 'POST':
         item_key = request.POST.get('itemKey')
@@ -727,8 +789,21 @@ def EditItem(request):
             return JsonResponse({"error": "Item not found"}, status=404)
 
 def save_edit_item(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] == 'Cashier':
+        raise Http404("You do not have permission to access this page.")
     
     try:
         if request.method == 'POST':
@@ -854,7 +929,7 @@ def check_expiry(expiry_dates):
         return "notExpired", earliest_expiry_date.strftime("%Y-%m-%d")
 
 def item_list(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
@@ -915,8 +990,21 @@ def create_deleted_data(item, bin_data):
     }
 
 def remove_item(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] == 'Cashier':
+        raise Http404("You do not have permission to access this page.")
     
     if request.method == 'POST':
         item_key = request.POST.get('itemID')
@@ -940,7 +1028,7 @@ def remove_item(request):
 
 # Return
 def Return(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     negaInt  = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
@@ -955,7 +1043,7 @@ def Return(request):
     return render(request, "personalTemplates/Return.html", data)
 
 def SearchTransactions(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     if request.method == 'POST':
@@ -1018,7 +1106,7 @@ def calculate_total_price(data_update):
     return new_total
 
 def insert_return(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     try:
@@ -1113,7 +1201,7 @@ def insert_return(request):
         return JsonResponse({"error": error_message}, status=500)
 
 def ReturnDetails(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     try:
@@ -1129,7 +1217,7 @@ def ReturnDetails(request):
         return JsonResponse({"error": error_message}, status=500)
 
 def ItemReceived(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     try:
@@ -1155,8 +1243,21 @@ def ItemReceived(request):
 
 # SystemActivities
 def SystemActivities(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] != 'Admin':
+        raise Http404("You do not have permission to access this page.")
     
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     activityList = db.child("SystemActivities").order_by_child("negaIntDate").start_at(negaInt).get().val()
@@ -1203,8 +1304,21 @@ def add_system_activities(uid, role, username, activity, updatedValues):
         db.child("SystemActivities").push(activitiesData)
 
 def ViewSystemActivities(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] != 'Admin':
+        raise Http404("You do not have permission to access this page.")
     
     if request.method == 'POST':
         activityID = request.POST.get('activityKey')
@@ -1213,8 +1327,21 @@ def ViewSystemActivities(request):
 
 # RecycleBin
 def RecycleBin(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] == 'Cashier':
+        raise Http404("You do not have permission to access this page.")
     
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     binList = db.child("RecycleBin").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
@@ -1229,8 +1356,21 @@ def RecycleBin(request):
 
 # UserList
 def UserList(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] != 'Admin':
+        raise Http404("You do not have permission to access this page.")
     
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     userList = db.child("Users").order_by_child("negaIntDate").start_at(negaInt).get().val()
@@ -1302,8 +1442,21 @@ class AddUserForm(forms.Form):
             self.add_error('confirmpass', 'Password and Confirm Password do not match.')
 
 def AddUser(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] != 'Admin':
+        raise Http404("You do not have permission to access this page.")
     
     try:
         if request.method == "POST":
@@ -1374,8 +1527,21 @@ def AddUser(request):
         return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
 
 def SearchUser(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] != 'Admin':
+        raise Http404("You do not have permission to access this page.")
     
     if request.method == 'POST':
         userKey = request.POST.get('userKey')
@@ -1423,8 +1589,21 @@ class EditUserForm(forms.Form):
         return role
     
 def SaveUser(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] != 'Admin':
+        raise Http404("You do not have permission to access this page.")
     
     try:
         if request.method == 'POST':
@@ -1480,8 +1659,21 @@ def SaveUser(request):
         return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
 
 def restore_data(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
+
+    local_id = user['users'][0]['localId']
+
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+    
+    if request.session['role'] == 'Cashier':
+        raise Http404("You do not have permission to access this page.")
     
     if request.method == 'POST':
         data_key = request.POST.get('dataKey')
@@ -1510,7 +1702,7 @@ def getImageURL(location, imageID):
     return url
 
 def CriticalQuantities(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
@@ -1548,7 +1740,7 @@ def CriticalQuantities(request):
 
 
 def AboutToExpire(request):
-    if not request.session.get('uid'):
+    if not request.session.get('sessionID'):
         return redirect('LogIn')
     
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
