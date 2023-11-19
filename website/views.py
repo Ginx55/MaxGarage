@@ -1563,7 +1563,7 @@ def AddUser(request):
                     "role": role,
                     "email": email,
                     "contact": contact,
-                    "mode": "Dark Mode",
+                    "mode": "Light Mode",
                     "negaIntDate": negaInt,
                     "status": True,
                     "lastLogin": "",
