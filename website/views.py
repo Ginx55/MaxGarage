@@ -167,6 +167,9 @@ def Dashboard(request):
 
 # Sales
 def PurchaseTransaction(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     data = {
         "Title" : "Purchase Transaction",
         "User" : request.session['username'],
@@ -177,6 +180,9 @@ def PurchaseTransaction(request):
     return render(request, "personalTemplates/PurchaseTransaction.html", data)
 
 def SearchItem(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         textbox = request.POST.get('textbox')
 
@@ -236,6 +242,9 @@ def generate_transaction_id():
     return transaction_id
 
 def insert_transaction(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         try:
             item_ids = [item['itemID'] for item in json.loads(request.POST['itemList'])]
@@ -371,6 +380,9 @@ def TransactionLog(request):
     return render(request, "personalTemplates/TransactionLog.html", data)
 
 def TransactionDetails(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         transactionID = request.POST.get('transID')
         transaction = db.child("TransactionLog").child(transactionID).get().val()
@@ -381,6 +393,9 @@ def TransactionDetails(request):
         return JsonResponse(transaction)
 
 def VoidTransaction(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         try:
             transactionKey = request.session['transactionKey']
@@ -428,6 +443,9 @@ def Date(dateData):
         return None
 
 def GetSalesReport(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         startDate = request.POST.get('startDate')
         endDate = request.POST.get('endDate')
@@ -453,6 +471,9 @@ def GetSalesReport(request):
         return JsonResponse({"error": "Invalid request method. Only POST requests are allowed."}, status=405)
 
 def VoidedTransactions(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     transactionList = db.child("VoidedTransactions").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
     data = {
@@ -466,6 +487,9 @@ def VoidedTransactions(request):
     return render(request, "personalTemplates/VoidedTransactions.html", data)
 
 def VoidedDetails(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         transactionID = request.POST.get('transID')
         transaction = db.child("VoidedTransactions").child(transactionID).get().val()
@@ -488,6 +512,9 @@ def get_item_details_return(item_id, fixed_id):
     return None, None
 
 def ReturnToInventory(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         transkey = request.POST.get('transkey')
         try:
@@ -590,6 +617,9 @@ def generate_item_code(word):
     return first_letter + without_vowels
 
 def add_item(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     try:
         if request.method == 'POST':
             form = AddItemForm(request.POST)
@@ -671,6 +701,9 @@ def add_item(request):
         return JsonResponse({"message": "An error occurred", "error": str(e)}, status=500)
 
 def EditItem(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         item_key = request.POST.get('itemKey')
         item = db.child("Items").child(item_key).get().val()
@@ -694,6 +727,9 @@ def EditItem(request):
             return JsonResponse({"error": "Item not found"}, status=404)
 
 def save_edit_item(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     try:
         if request.method == 'POST':
             item_key = request.POST.get('itemkey')
@@ -818,6 +854,9 @@ def check_expiry(expiry_dates):
         return "notExpired", earliest_expiry_date.strftime("%Y-%m-%d")
 
 def item_list(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
     item_list = db.child("Items").order_by_child("negaIntDate").start_at(nega_int).limit_to_first(10).get().val()
 
@@ -876,6 +915,9 @@ def create_deleted_data(item, bin_data):
     }
 
 def remove_item(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         item_key = request.POST.get('itemID')
         item = db.child("Items").child(item_key).get().val()
@@ -898,6 +940,9 @@ def remove_item(request):
 
 # Return
 def Return(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     negaInt  = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     returnList = db.child("Return").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
     data = {
@@ -910,6 +955,9 @@ def Return(request):
     return render(request, "personalTemplates/Return.html", data)
 
 def SearchTransactions(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         transactionID = request.POST.get('transID')
         transaction = db.child("TransactionLog").order_by_child("transactionID").equal_to(transactionID).get().val()
@@ -970,6 +1018,9 @@ def calculate_total_price(data_update):
     return new_total
 
 def insert_return(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     try:
         if request.method == 'POST':
             # Parse the returned_items using the ReturnForm
@@ -1062,6 +1113,9 @@ def insert_return(request):
         return JsonResponse({"error": error_message}, status=500)
 
 def ReturnDetails(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     try:
         returnID = request.POST.get('returnKey')
         returnData = db.child("Return").child(returnID).get().val()
@@ -1075,6 +1129,9 @@ def ReturnDetails(request):
         return JsonResponse({"error": error_message}, status=500)
 
 def ItemReceived(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     try:
         returnID = request.POST.get('returnKey')
         returnData = db.child("Return").child(returnID).get().val()
@@ -1098,6 +1155,9 @@ def ItemReceived(request):
 
 # SystemActivities
 def SystemActivities(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     activityList = db.child("SystemActivities").order_by_child("negaIntDate").start_at(negaInt).get().val()
     try:
@@ -1143,6 +1203,9 @@ def add_system_activities(uid, role, username, activity, updatedValues):
         db.child("SystemActivities").push(activitiesData)
 
 def ViewSystemActivities(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         activityID = request.POST.get('activityKey')
         activityData = db.child("SystemActivities").child(activityID).get().val()
@@ -1150,6 +1213,9 @@ def ViewSystemActivities(request):
 
 # RecycleBin
 def RecycleBin(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     binList = db.child("RecycleBin").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
     data = {
@@ -1163,6 +1229,9 @@ def RecycleBin(request):
 
 # UserList
 def UserList(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     userList = db.child("Users").order_by_child("negaIntDate").start_at(negaInt).get().val()
     data = {
@@ -1233,6 +1302,9 @@ class AddUserForm(forms.Form):
             self.add_error('confirmpass', 'Password and Confirm Password do not match.')
 
 def AddUser(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     try:
         if request.method == "POST":
             form = AddUserForm(request.POST)
@@ -1302,6 +1374,9 @@ def AddUser(request):
         return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
 
 def SearchUser(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         userKey = request.POST.get('userKey')
         userData = db.child("Users").child(userKey).get().val()
@@ -1348,6 +1423,9 @@ class EditUserForm(forms.Form):
         return role
     
 def SaveUser(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     try:
         if request.method == 'POST':
             form = EditUserForm(request.POST)
@@ -1402,6 +1480,9 @@ def SaveUser(request):
         return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
 
 def restore_data(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     if request.method == 'POST':
         data_key = request.POST.get('dataKey')
         recycle_bin_data = db.child("RecycleBin").child(data_key).get().val()
@@ -1429,6 +1510,9 @@ def getImageURL(location, imageID):
     return url
 
 def CriticalQuantities(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
     filtered_items = {
         key: item for key, item in db.child("Items").order_by_child("negaIntDate").start_at(nega_int).get().val().items()
@@ -1464,6 +1548,9 @@ def CriticalQuantities(request):
 
 
 def AboutToExpire(request):
+    if not request.session.get('uid'):
+        return redirect('LogIn')
+    
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
     item_list = db.child("Items").order_by_child("negaIntDate").start_at(nega_int).get().val()
     filtered_items = {}
