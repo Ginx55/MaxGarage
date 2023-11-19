@@ -462,7 +462,7 @@ def VoidTransaction(request):
             removeValue = {
                 "Transaction ID": transaction['transactionID']
             }
-            add_system_activities(request.session['uid'], request.session['role'], request.session['username'], "voided a transaction", removeValue)
+            add_system_activities(request, "voided a transaction", removeValue)
 
             return JsonResponse({"message": "The transaction has been successfully voided!"})
 
@@ -767,7 +767,7 @@ def add_item(request):
                     "Item Max Quantity": data['itemMaxQuantity'],
                     "Item Critical Quantity": data['itemCriticalQuantity'],
                 }
-                add_system_activities(request.session['uid'], request.session['role'], request.session['username'], "added an item", activities_data)
+                add_system_activities(request, "added an item", activities_data)
                 return JsonResponse({"message": "Item inserted successfully!"})
             else:
                 return JsonResponse({"message": "Invalid data", "errors": form.errors}, status=400)
@@ -908,16 +908,26 @@ def save_edit_item(request):
                 }
                 db.child("Items").child(item_key).update(item_data)
 
-                updated_values = {}
-                keys_to_check = ["itemID", "itemName", "itemPrice", "itemQuantity", "itemMaxQuantity", "itemCriticalQuantity"]
+                field_labels = {
+                    "itemID": "Barcode",
+                    "itemName": "Item Name",
+                    "itemPrice": "Price",
+                    "itemQuantity": "Quantity",
+                    "itemMaxQuantity": "Maximum Quantity",
+                    "itemCriticalQuantity": "Critical Quantity"
+                }
 
-                for key in keys_to_check:
-                    if item_details[key] != item_data[key]:
-                        updated_values[key] = f"from {item_details[key]} to {item_data[key]}"
+                # Compare old and new values to identify changes
+                changed_fields = {}
+                for field, label in field_labels.items():
+                    if item_details[field] != data[field]:
+                        changed_fields[label] = {
+                            "old": item_details[field],
+                            "new": data[field]
+                        }
 
-                if updated_values:
-                    add_system_activities(request.session['uid'], request.session['role'], request.session['username'],
-                                        "updated an item", updated_values)
+                if changed_fields:
+                    add_system_activities(request, "updated an item", changed_fields)
 
                 return JsonResponse({"message": f"{item_name} has been updated successfully"}, status=200)
 
@@ -1059,7 +1069,7 @@ def remove_item(request):
                 "itemName": item['itemName'],
             }
 
-            add_system_activities(request.session['uid'], request.session['role'], request.session['username'], "removed an item", remove_value)
+            add_system_activities(request, "removed an item", remove_value)
 
             return JsonResponse({"message": f"{item['itemName']} has been removed successfully"}, status=200)
         else:
@@ -1338,26 +1348,40 @@ def SystemActivities(request):
     }
     return render(request, "personalTemplates/SystemActivities.html", data)
 
-def add_system_activities(uid, role, username, activity, updatedValues):
-        int_current_date = datetime.now()
-        intDate = int(int_current_date.strftime("%Y%m%d%H%M%S"))
+def add_system_activities(request, activity, updatedValues):
+    if not request.session.get('sessionID'):
+        return redirect('LogIn')
+    
+    user = authentication.get_account_info(request.session.get('sessionID'))
 
-        current_date = str(date.today())
-        current_time = int_current_date.strftime("%I:%M %p") 
+    local_id = user['users'][0]['localId']
 
-        negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
-        activitiesData = {
-            "intDateCreated" : intDate,
-            "dateCreated" : current_date,
-            "timeCreated" : current_time,
-            "role" : role,
-            "currentUser" : username,
-            "actionsMade" : activity,
-            "updatedValues" : updatedValues,
-            "negaIntDate" : negaInt,
-            "userID" : uid,
-        }
-        db.child("SystemActivities").push(activitiesData)
+    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+    user_data_key = list(user_data.keys())[0]
+    request.session['username'] = user_data[user_data_key]['username']
+    request.session['role'] = user_data[user_data_key]['role']
+    request.session['uid'] = local_id
+
+    int_current_date = datetime.now()
+    intDate = int(int_current_date.strftime("%Y%m%d%H%M%S"))
+
+    current_date = str(date.today())
+    current_time = int_current_date.strftime("%I:%M %p") 
+
+    negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
+    activitiesData = {
+        "intDateCreated" : intDate,
+        "dateCreated" : current_date,
+        "timeCreated" : current_time,
+        "actionsMade" : activity,
+        "updatedValues" : updatedValues,
+        "negaIntDate" : negaInt,
+        "userID" : local_id,
+        "role" : user_data[user_data_key]['role'],
+        "currentUser" : user_data[user_data_key]['username'],
+        "imgsrc" : user_data[user_data_key]['imgsrc'],
+    }
+    db.child("SystemActivities").push(activitiesData)
 
 def ViewSystemActivities(request):
     if not request.session.get('sessionID'):
@@ -1703,6 +1727,22 @@ def SaveUser(request):
                 }
                 db.child("Users").child(userKey).update(updatedData)
 
+                changed_fields = {}
+                field_labels = {
+                    "username": "Username",
+                    "contact": "Contact",
+                    "role": "Role",
+                    "status": "Status"
+                }
+
+                for field, label in field_labels.items():
+                    if userData[field] != data[field]:
+                        changed_fields[label] = {
+                            "old": userData[field],
+                            "new": data[field]
+                        }
+
+                add_system_activities(request, "updated a user", changed_fields)
                 return JsonResponse({"message": "User updated successfully"})
             else:
                 # Form is not valid, you can access the custom error messages
@@ -1750,11 +1790,10 @@ def restore_data(request):
             db.child("RecycleBin").child(data_key).remove()
 
             restored_data = {
-                'itemName' : original_data["itemName"],
-                'itemID' :  original_data["itemID"],
+                'Item Name' : original_data["itemName"],
+                'Barcode' :  original_data["itemID"],
             }
-            add_system_activities(request.session['uid'], request.session['role'], request.session['username'], "restored data", restored_data)
-            
+            add_system_activities(request, "restored data", restored_data)
             return HttpResponse("Data restored")
         else:
             return HttpResponse("Data not found in the RecycleBin")

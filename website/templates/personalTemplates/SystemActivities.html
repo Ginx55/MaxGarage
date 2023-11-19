@@ -99,7 +99,6 @@
     <b> Role: </b> <span id="role"></span><br />
     <b> Actions Made: </b> <span id="action"></span><br />
     <br />
-    <b> Info: </b> <span id="info"></span><br />
   </div>
 </div>
 
@@ -109,23 +108,46 @@
     viewDetails(data);
   });
 
-  function createDetails(title, value) {
+  function createDetails(title, values) {
     const b = document.createElement("b");
     $(b).text(title + ":");
 
-    const span = document.createElement("span");
-    $(span).text("\u00A0\u00A0" + value);
-
     const br = document.createElement("br");
 
-    if (title == "itemName") {
-      document.querySelector("#activityList").prepend(br);
-      document.querySelector("#activityList").prepend(span);
-      document.querySelector("#activityList").prepend(b);
-    } else {
-      document.querySelector("#activityList").append(b);
-      document.querySelector("#activityList").append(span);
-      document.querySelector("#activityList").append(br);
+    // Append elements to the activityList div
+    const activityList = document.getElementById("activityList");
+    if (activityList != null) {
+      activityList.append(b, br);
+
+      // Create a single span with the value
+      const spanValue = document.createElement("span");
+      $(spanValue).text("\u00A0\u00A0" + ": " + values);
+
+      activityList.append(spanValue, br);
+    }
+  }
+
+  function createDetailsWithOldNew(title, values) {
+    const b = document.createElement("b");
+    $(b).text(title + ":");
+
+    const br1 = document.createElement("br");
+    const br2 = document.createElement("br");
+
+    // Append elements to the activityList div
+    const activityList = document.getElementById("activityList");
+    if (activityList != null) {
+      activityList.append(b, br1);
+
+      // Both old and new values are defined
+      const spanOld = document.createElement("span");
+      $(spanOld).text("\u00A0\u00A0old: " + values.old);
+
+      const spanNew = document.createElement("span");
+      $(spanNew).text("\u00A0\u00A0new: " + values.new);
+
+      const br3 = document.createElement("br");
+      activityList.append(spanOld, br2, spanNew, br3);
     }
   }
 
@@ -163,10 +185,26 @@
         div.setAttribute("id", "activityList");
         document.querySelector("#activityDetails").append(div);
 
-        activities = activityData["updatedValues"];
-        for (const key in activities) {
-          createDetails(key, activities[key]);
+        const changedFields = activityData["updatedValues"];
+        for (const label in changedFields) {
+          if (
+            changedFields[label] !== undefined &&
+            changedFields[label] !== null
+          ) {
+            if (
+              typeof changedFields[label] === "object" &&
+              "old" in changedFields[label] &&
+              "new" in changedFields[label]
+            ) {
+              // Use the function for "old" and "new" properties
+              createDetailsWithOldNew(label, changedFields[label]);
+            } else {
+              // Use the function for a single value
+              createDetails(label, changedFields[label]);
+            }
+          }
         }
+
         $("#actDetails").show();
       },
     });
