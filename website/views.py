@@ -1339,7 +1339,7 @@ def SystemActivities(request):
         pass
 
     data = {
-        "Title" : "System Activities",
+        "Title" : "Audit Trail",
         "User" : request.session['username'],
         "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
         "ActivityList" : activityList,
