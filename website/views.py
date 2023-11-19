@@ -1632,6 +1632,7 @@ def SearchUser(request):
     if request.method == 'POST':
         userKey = request.POST.get('userKey')
         userData = db.child("Users").child(userKey).get().val()
+        userData['currentuser'] = user_data[user_data_key]["email"]
         request.session['userKey'] = userKey
         return JsonResponse(userData)
 

@@ -2,21 +2,19 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
 
 <style>
-  /* Common styles for round sliders */
   .slider.round {
-    border-radius: 34px;
+    border-radius: 16px;
   }
 
   .slider.round:before {
     border-radius: 50%;
   }
 
-  /* Styles for the switch container */
   .switch {
     position: relative;
     display: inline-block;
-    width: 60px;
-    height: 34px;
+    width: 40px;
+    height: 20px;
   }
 
   .switch input {
@@ -25,7 +23,6 @@
     height: 0;
   }
 
-  /* Styles for the slider within the switch container */
   .slider {
     position: absolute;
     cursor: pointer;
@@ -37,46 +34,39 @@
     transition: 0.4s;
   }
 
-  /* Styles for the slider knob */
   .slider:before {
     position: absolute;
     content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
     background-color: white;
     transition: 0.4s;
   }
 
-  /* Styles for the slider when checked */
   input:checked + .slider {
     background-color: #41f1b6;
   }
 
-  /* Styles for the slider when focused */
   input:focus + .slider {
     box-shadow: 0 0 1px #41f1b6;
   }
 
-  /* Styles for the slider knob when checked */
   input:checked + .slider:before {
-    transform: translateX(26px);
+    transform: translateX(19px);
   }
 
-  /* Styles for the user container grid */
   .userContainer {
     display: grid;
     grid-template-columns: 55% 45%;
     gap: 10px;
   }
 
-  /* Styles for user input within the container */
   .userContainer input {
     margin-bottom: 10px;
   }
 
-  /* Styles for the image container */
   .img {
     height: 20rem;
     width: 100%;
@@ -84,19 +74,16 @@
     display: none;
   }
 
-  /* Styles for the role container */
   .role {
     display: flex;
     justify-content: center;
   }
 
-  /* Styles for the role select dropdown */
   .role select {
     height: 30px;
     padding: 5px;
   }
 
-  /* Styles for the image holder container */
   .imageHolder {
     text-align: center;
     padding: 3%;
@@ -108,14 +95,23 @@
     align-items: center;
   }
 
-  /* Styles to hide file input */
   input[type="file"] {
     display: none;
   }
 
-  /* Cursor style for labels */
   label {
     cursor: pointer;
+  }
+
+  #switch-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .active-text {
+    margin-right: 0.5rem;
+    font-size: 1rem;
   }
 </style>
 <main>
@@ -188,7 +184,8 @@
 <div class="form-popup" id="editUserForm" style="width: 55%">
   <h1 style="text-align: center">Edit User</h1>
 
-  <div style="text-align: right">
+  <div id="switch-container">
+    <span class="active-text" id="active-text">Active</span>
     <label class="switch">
       <input type="checkbox" id="toggle" />
       <span class="slider round"></span>
@@ -314,6 +311,11 @@
     editUser(data);
   });
 
+  $("#toggle").on("change", function () {
+    var activeText = $("#active-text");
+    activeText.text(this.checked ? "Active" : "Inactive");
+  });
+
   let editImageSrc;
   function editUser(key) {
     $.ajax({
@@ -326,8 +328,16 @@
       success: function (userData) {
         if (userData["status"]) {
           document.getElementById("toggle").checked = true;
+          $("#active-text").text("Active");
         } else {
           document.getElementById("toggle").checked = false;
+          $("#active-text").text("Inactive");
+        }
+
+        if (userData["currentuser"] == userData["email"]) {
+          $("#switch-container").hide();
+        } else {
+          $("#switch-container").show();
         }
         const img = document.getElementById("editImgPreview");
         if (img.src != null) {
