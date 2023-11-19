@@ -1742,8 +1742,9 @@ def SaveUser(request):
                             "old": userData[field],
                             "new": data[field]
                         }
-
-                add_system_activities(request, "updated a user", changed_fields)
+                        
+                if changed_fields:
+                    add_system_activities(request, "updated a user", changed_fields)
                 return JsonResponse({"message": "User updated successfully"})
             else:
                 # Form is not valid, you can access the custom error messages
