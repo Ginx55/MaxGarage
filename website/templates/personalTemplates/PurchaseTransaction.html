@@ -216,8 +216,8 @@
       </button>
 
       <div class="theme-toggler">
-        <span class="material-symbols-sharp">light_mode</span>
-        <span class="material-symbols-sharp active">dark_mode</span>
+        <span class="material-symbols-sharp active">light_mode</span>
+        <span class="material-symbols-sharp">dark_mode</span>
       </div>
 
       <div class="profile">
@@ -250,7 +250,11 @@
         <div class="searchBarcode">
           <form id="searchForm">
             {% csrf_token %}
-            <input type="text" id="textbox" placeholder="  Barcode / Item Name" />
+            <input
+              type="text"
+              id="textbox"
+              placeholder="  Barcode / Item Name"
+            />
             <button type="submit">
               <span class="material-symbols-outlined" id="search">search</span>
             </button>
