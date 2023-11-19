@@ -171,7 +171,7 @@
   </head>
   <body>
     <script>
-      const mode = "{{mode}}";
+      const mode = "{{ mode|escapejs }}";
       if (mode == "Dark Mode") {
         $("body").toggleClass("dark-theme-variables");
       }
