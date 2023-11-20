@@ -964,6 +964,26 @@
   onChildRemoved(reference, (data) => {
     removeRow(data.key);
   });
+
+  onChildChanged(reference, (data) => {
+    const itemData = data.val();
+
+    const quantityClass = addTableItemClass(itemData);
+    console.log(quantityClass);
+    if (quantityClass == "danger" && itemData.criticalNotif) {
+      showAlert(
+        "error",
+        "An item has reached a critical level",
+        itemData.criticalNotif
+      );
+    } else if (quantityClass == "warning" && itemData.overStockNotif) {
+      showAlert(
+        "warning",
+        "An item has reached an overstocked level",
+        itemData.overStockNotif
+      );
+    }
+  });
 </script>
 {% else %}
 <script type="module">
@@ -1166,6 +1186,26 @@
 
   onChildRemoved(itemsReference, (data) => {
     removeRow(data.key);
+  });
+
+  onChildChanged(itemsReference, (data) => {
+    const itemData = data.val();
+
+    const quantityClass = addTableItemClass(itemData);
+    console.log(quantityClass);
+    if (quantityClass == "danger" && itemData.criticalNotif) {
+      showAlert(
+        "error",
+        "An item has reached a critical level",
+        itemData.criticalNotif
+      );
+    } else if (quantityClass == "warning" && itemData.overStockNotif) {
+      showAlert(
+        "warning",
+        "An item has reached an overstocked level",
+        itemData.overStockNotif
+      );
+    }
   });
 </script>
 {% endif %} {% endblock PageContents%}
