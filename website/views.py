@@ -92,7 +92,7 @@ def login(request):
                         return JsonResponse({'authenticated': True, 'redirect_url': '/Dashboard/'})
                     
                 else:
-                    return HttpResponse("Account Disabled")
+                    return JsonResponse({'authenticated': False, 'error_message': 'Account Disabled!'})
             else:
                 return JsonResponse({'authenticated': False, 'error_message': 'Account not found!'}, status=400)
         else:
