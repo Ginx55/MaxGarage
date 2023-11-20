@@ -612,8 +612,8 @@ def is_image(file_path):
     
 class AddItemForm(forms.Form):
     itemID = forms.CharField(max_length=12, min_length=8, error_messages={
-        'min_length': 'Item ID must be at least 8 characters long.',
-        'max_length': 'Item ID cannot exceed 12 characters.',
+        'min_length': 'Barcode must be at least 8 characters long.',
+        'max_length': 'Barcode cannot exceed 12 characters.',
     })
     itemName = forms.CharField(max_length=30, min_length=3, error_messages={
         'min_length': 'Item name must be at least 3 characters long.',
