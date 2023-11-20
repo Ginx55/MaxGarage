@@ -37,8 +37,9 @@
     <table id="achiveTable">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Name</th>
+          <th>Barcode</th>
+          <th>Item Name</th>
+          <th>User</th>
           <th>Date Deleted</th>
           <th>Restore</th>
         </tr>
@@ -48,6 +49,7 @@
         <tr id="{{key}}0">
           <td>{{value.binData.ID}}</td>
           <td>{{value.binData.itemName}}</td>
+          <td>{{value.user}}</td>
           <td>{{value.binData.date}}</td>
           <td class="success" id="{{key}}">
             <span class="material-symbols-outlined"> restore_from_trash </span>
@@ -118,8 +120,8 @@
     info: false,
     order: [[1, "asc"]],
     columnDefs: [
-      { className: "dt-center", targets: [0, 1, 2, 3] },
-      { orderable: false, targets: [0, 3] },
+      { className: "dt-center", targets: [0, 1, 2, 3, 4] },
+      { orderable: false, targets: [0, 4] },
     ],
     lengthMenu: [
       [10, 25],

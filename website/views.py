@@ -1015,11 +1015,11 @@ def item_list(request):
     }
     return render(request, "personalTemplates/ItemList.html", data)
 
-def remove_data(location, key):
+def remove_data(location, key, user):
     item = db.child(location).child(key).get().val()
     current_date = str(date.today())
     bin_data = create_bin_data(item, location, current_date)
-    deleted_data = create_deleted_data(item, bin_data)
+    deleted_data = create_deleted_data(item, bin_data, user)
 
     db.child("RecycleBin").push(deleted_data)
     db.child(location).child(key).remove()
@@ -1032,12 +1032,13 @@ def create_bin_data(item, location, current_date):
         "location": location
     }
 
-def create_deleted_data(item, bin_data):
+def create_deleted_data(item, bin_data, user):
     nega_int_date = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     return {
         "negaIntDate": nega_int_date,
         "data": item,
-        "binData": bin_data
+        "binData": bin_data,
+        "user" : user,
     }
 
 def remove_item(request):
@@ -1062,7 +1063,7 @@ def remove_item(request):
         item = db.child("Items").child(item_key).get().val()
 
         if item:
-            remove_data("Items", item_key)
+            remove_data("Items", item_key, request.session['username'])
 
             remove_value = {
                 "Barcode": item['itemID'],
@@ -1426,7 +1427,7 @@ def RecycleBin(request):
         raise Http404("You do not have permission to access this page.")
     
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
-    binList = db.child("RecycleBin").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
+    binList = db.child("RecycleBin").order_by_child("negaIntDate").start_at(negaInt).get().val()
     data = {
         "Title" : "Archive",
         "User" : request.session['username'],
