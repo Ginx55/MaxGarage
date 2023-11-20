@@ -75,10 +75,39 @@
         dataKey: dataKey,
         csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
       },
-      success: function (message) {
-        alert(message);
+      success: function (response) {
+        if (response.message === "Data restored successfully!") {
+          showSuccessAlert(response.message);
+        } else {
+          showErrorAlert(response.message);
+        }
+      },
+      error: function (xhr, textStatus, errorThrown) {
+        showErrorAlert("An error occurred: " + errorThrown);
       },
     });
+  }
+
+  function showSuccessAlert(message) {
+    $("#success-message").text(message);
+    $(".success-alert").addClass("show");
+    $(".success-alert").removeClass("hide");
+    $(".success-alert").addClass("showAlert");
+    setTimeout(function () {
+      $(".success-alert").removeClass("show");
+      $(".success-alert").addClass("hide");
+    }, 5000);
+  }
+
+  function showErrorAlert(errorMessage) {
+    $("#error-message").text(errorMessage);
+    $(".error-alert").addClass("show");
+    $(".error-alert").removeClass("hide");
+    $(".error-alert").addClass("showAlert");
+    setTimeout(function () {
+      $(".error-alert").removeClass("show");
+      $(".error-alert").addClass("hide");
+    }, 10000);
   }
 </script>
 
@@ -137,6 +166,7 @@
     return [
       transData.binData.ID,
       transData.binData.itemName,
+      transData.user,
       transData.binData.date,
       "<span class='material-symbols-outlined'> restore_from_trash </span>",
     ];

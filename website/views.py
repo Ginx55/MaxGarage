@@ -1764,42 +1764,48 @@ def SaveUser(request):
         return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
 
 def restore_data(request):
-    if not request.session.get('sessionID'):
-        return redirect('LogIn')
-    
-    user = authentication.get_account_info(request.session.get('sessionID'))
+    try:
+        if not request.session.get('sessionID'):
+            return JsonResponse({"message": "Unauthorized access, please log in."}, status=401)
 
-    local_id = user['users'][0]['localId']
+        user = authentication.get_account_info(request.session.get('sessionID'))
 
-    user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
-    user_data_key = list(user_data.keys())[0]
-    request.session['username'] = user_data[user_data_key]['username']
-    request.session['role'] = user_data[user_data_key]['role']
-    request.session['uid'] = local_id
-    
-    if request.session['role'] == 'Cashier':
-        raise Http404("You do not have permission to access this page.")
-    
-    if request.method == 'POST':
-        data_key = request.POST.get('dataKey')
-        recycle_bin_data = db.child("RecycleBin").child(data_key).get().val()
+        local_id = user['users'][0]['localId']
 
-        if recycle_bin_data:
-            original_data = recycle_bin_data['data']
-            location = recycle_bin_data['binData']['location']
+        user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+        user_data_key = list(user_data.keys())[0]
+        request.session['username'] = user_data[user_data_key]['username']
+        request.session['role'] = user_data[user_data_key]['role']
+        request.session['uid'] = local_id
 
-            db.child(location).push(original_data)
+        if request.session['role'] == 'Cashier':
+            raise Http404("You do not have permission to access this page.")
 
-            db.child("RecycleBin").child(data_key).remove()
+        if request.method == 'POST':
+            data_key = request.POST.get('dataKey')
+            recycle_bin_data = db.child("RecycleBin").child(data_key).get().val()
 
-            restored_data = {
-                'Item Name' : original_data["itemName"],
-                'Barcode' :  original_data["itemID"],
-            }
-            add_system_activities(request, "restored data", restored_data)
-            return HttpResponse("Data restored")
-        else:
-            return HttpResponse("Data not found in the RecycleBin")
+            if recycle_bin_data:
+                original_data = recycle_bin_data['data']
+                location = recycle_bin_data['binData']['location']
+
+                db.child(location).push(original_data)
+
+                db.child("RecycleBin").child(data_key).remove()
+
+                restored_data = {
+                    'Item Name': original_data["itemName"],
+                    'Barcode': original_data["itemID"],
+                }
+                add_system_activities(request, "restored data", restored_data)
+                return JsonResponse({"message": "Data restored successfully!"})
+            else:
+                return JsonResponse({"message": "Data not found in the Archive"}, status=404)
+
+        return JsonResponse({"message": "Invalid request method"}, status=400)
+
+    except Exception as e:
+        return JsonResponse({"message": "An error occurred", "error": str(e)}, status=500)
 
 def getImageURL(location, imageID):
     url = storage.child(location + imageID).get_url(None)
