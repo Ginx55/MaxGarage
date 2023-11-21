@@ -719,7 +719,7 @@ def add_item(request):
                 check_item = db.child("Items").order_by_child("itemID").equal_to(data['itemID']).get().val()
 
                 if check_item:
-                    return JsonResponse({"message": "Barcode ID already exists"}, status=400) 
+                    return JsonResponse({"message": "Barcode ID already exists"}, status=400)
                 
                 fixedID = generate_unique_id()
 
@@ -1802,16 +1802,19 @@ def restore_data(request):
                 original_data = recycle_bin_data['data']
                 location = recycle_bin_data['binData']['location']
 
-                db.child(location).push(original_data)
+                item = db.child("Items").order_by_child("itemID").equal_to(original_data["itemID"]).get().val()
+                if item:
+                    return JsonResponse({"message": "Barcode already exist"})
+                else:
+                    db.child(location).push(original_data)
+                    db.child("RecycleBin").child(data_key).remove()
 
-                db.child("RecycleBin").child(data_key).remove()
-
-                restored_data = {
-                    'Item Name': original_data["itemName"],
-                    'Barcode': original_data["itemID"],
-                }
-                add_system_activities(request, "restored data", restored_data)
-                return JsonResponse({"message": "Data restored successfully!"})
+                    restored_data = {
+                        'Item Name': original_data["itemName"],
+                        'Barcode': original_data["itemID"],
+                    }
+                    add_system_activities(request, "restored data", restored_data)
+                    return JsonResponse({"message": "Data restored successfully!"})
             else:
                 return JsonResponse({"message": "Data not found in the Archive"}, status=404)
 
