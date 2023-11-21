@@ -1779,7 +1779,7 @@ def SaveUser(request):
 def restore_data(request):
     try:
         if not request.session.get('sessionID'):
-            return JsonResponse({"message": "Unauthorized access, please log in."}, status=401)
+            return redirect('LogIn')
 
         user = authentication.get_account_info(request.session.get('sessionID'))
 
