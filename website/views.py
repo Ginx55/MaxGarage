@@ -666,6 +666,15 @@ class AddItemForm(forms.Form):
                 raise forms.ValidationError("Expiry date is required.")
             cleaned_expiry_dates.append({'date': date, 'notify': notify})
 
+            if notify is not None:
+                try:
+                    notify = int(notify)
+                except ValueError:
+                    raise forms.ValidationError("Notify value must be a valid integer.")
+
+                if notify < 0:
+                    raise forms.ValidationError("Notify value must be a non-negative integer.")
+
         return cleaned_expiry_dates
     
 def generate_unique_id():
