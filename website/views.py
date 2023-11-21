@@ -108,8 +108,12 @@ def send_forgot_pass(request):
     try:
         user_data = db.child("Users").order_by_child("email").equal_to(emailText).get().val()
         if user_data:
-            authentication.send_password_reset_email(emailText)
-            return JsonResponse({'authenticated': True, 'success_message': 'Check your email!'})
+            user_key = list(user_data.keys())[0]
+            if user_data[user_key]['status']:
+                authentication.send_password_reset_email(emailText)
+                return JsonResponse({'authenticated': True, 'success_message': 'Check your email!'})
+            else:
+                return JsonResponse({'authenticated': False, 'error_message': 'Account Disabled!'}, status=400)
         else:
             return JsonResponse({'authenticated': False, 'error_message': 'Account not found!'}, status=400)
     except Exception as e:
