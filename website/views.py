@@ -200,6 +200,9 @@ def PurchaseTransaction(request):
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
 
+    thread = threading.Thread(target=check_quantities, args=(5,))
+    thread.start()
+
     data = {
         "Title" : "Purchase Transaction",
         "User" : request.session['username'],
@@ -406,6 +409,9 @@ def TransactionLog(request):
         daily_transactions = db.child("TransactionLog").order_by_child("intDate").equal_to(int(date)).get().val() or {}
         total = sum(float(entry.get("totalPrice", 0)) for entry in daily_transactions.values())
         data.append(total)
+
+    thread = threading.Thread(target=check_quantities, args=(5,))
+    thread.start()
 
     data = {
         "Title": "Transaction Log",
@@ -1016,6 +1022,9 @@ def item_list(request):
         except Exception as e:
             item["expiryClass"] = ""
             item["expiryDate"] = ""
+
+    thread = threading.Thread(target=check_quantities, args=(5,))
+    thread.start()
 
     data = {
         "Title": "Item List",
@@ -1865,6 +1874,9 @@ def CriticalQuantities(request):
         except Exception as e:
             item["expiryClass"] = ""
             item["expiryDate"] = ""
+    
+    thread = threading.Thread(target=check_quantities, args=(5,))
+    thread.start()
 
     data = {
         "Title": "Critical Quantities",
@@ -1921,6 +1933,9 @@ def AboutToExpire(request):
             pass
 
     filtered_items = dict(islice(filtered_items.items(), 10))
+
+    thread = threading.Thread(target=check_quantities, args=(5,))
+    thread.start()
 
     data = {
         "Title": "About To Expire",
