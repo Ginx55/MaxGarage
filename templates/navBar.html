@@ -743,8 +743,14 @@
     });
 
     $(document).on("submit", "#barcodeForm", function (e) {
-      e.preventDefault();
-      generateBarcode("barcode", $("#barcodeText").val());
+      e.preventDefault(); // Prevent default form submission
+      var inputValue = $("#barcodeText").val();
+      if (inputValue.length > 12 || inputValue.length < 8) {
+        $("#barcodeText").css("border", "2px solid red");
+      } else {
+        $("#barcodeText").css("border", "");
+        generateBarcode("barcode", inputValue);
+      }
     });
 
     function generateBarcode(elementID, data) {
