@@ -219,6 +219,8 @@ def SearchItem(request):
     
     if request.method == 'POST':
         textbox = request.POST.get('textbox')
+        if len(textbox) < 3:
+            return HttpResponse("Input length must be at least 3 characters.")
 
         itemData = search_item(textbox)
         

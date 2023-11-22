@@ -617,57 +617,71 @@
         },
         success: function (itemDetails) {
           if (itemDetails != "Cannot find item") {
-            const tableBody = document.getElementById("transactionBody");
-            if (tableBody == null) {
-              createTableBody("transactionBody", "#transTable");
-            }
-            let element = document.getElementById(itemDetails["itemKey"] + "1");
-            if (element != null) {
-              let itemKey = "#" + itemDetails["itemKey"];
-
-              let quantity = Number($(itemKey + "2").text()) + 1;
-              let price = itemDetails["itemPrice"] * quantity;
-              price = Math.round(price * 100) / 100;
-              totalAmount += itemDetails["itemPrice"];
-
-              $(itemKey + "2").text(quantity);
-              $(itemKey + "3").text(price);
-
-              $("#namePreview").text(itemDetails["itemName"]);
-              $("#quanPreview").text(quantity);
-              $("#pricePreview").text("Php: " + price);
-            } else {
-              const row = document.createElement("tr");
-
-              let cellKey = itemDetails["itemKey"];
-              let fixedID = itemDetails["fixedID"];
-              let itemID = itemDetails["itemID"];
-              let itemName = itemDetails["itemName"];
-              let itemPrice = itemDetails["itemPrice"];
-              let itemQuantity = itemDetails["itemQuantity"];
-
-              $("#namePreview").text(itemName);
-              $("#namePreview").attr("value", cellKey);
-              $("#quanPreview").text("1");
-              $("#pricePreview").text("Php: " + itemPrice);
-
-              row.setAttribute("id", cellKey);
-
-              row.appendChild(
-                createTableCell(itemName, cellKey + "1", fixedID, itemID)
+            if (itemDetails != "Input length must be at least 3 characters.") {
+              const tableBody = document.getElementById("transactionBody");
+              if (tableBody == null) {
+                createTableBody("transactionBody", "#transTable");
+              }
+              let element = document.getElementById(
+                itemDetails["itemKey"] + "1"
               );
-              row.appendChild(createQuantityButtons("1", cellKey, itemPrice));
-              row.appendChild(createTableCell(itemPrice, cellKey + "3"));
-              row.append(createRemoveButton(cellKey));
-              totalAmount += itemDetails["itemPrice"];
+              if (element != null) {
+                let itemKey = "#" + itemDetails["itemKey"];
 
-              document.querySelector("#transTable tbody").prepend(row);
+                let quantity = Number($(itemKey + "2").text()) + 1;
+                let price = itemDetails["itemPrice"] * quantity;
+                price = Math.round(price * 100) / 100;
+                totalAmount += itemDetails["itemPrice"];
+
+                $(itemKey + "2").text(quantity);
+                $(itemKey + "3").text(price);
+
+                $("#namePreview").text(itemDetails["itemName"]);
+                $("#quanPreview").text(quantity);
+                $("#pricePreview").text("Php: " + price);
+              } else {
+                const row = document.createElement("tr");
+
+                let cellKey = itemDetails["itemKey"];
+                let fixedID = itemDetails["fixedID"];
+                let itemID = itemDetails["itemID"];
+                let itemName = itemDetails["itemName"];
+                let itemPrice = itemDetails["itemPrice"];
+                let itemQuantity = itemDetails["itemQuantity"];
+
+                $("#namePreview").text(itemName);
+                $("#namePreview").attr("value", cellKey);
+                $("#quanPreview").text("1");
+                $("#pricePreview").text("Php: " + itemPrice);
+
+                row.setAttribute("id", cellKey);
+
+                row.appendChild(
+                  createTableCell(itemName, cellKey + "1", fixedID, itemID)
+                );
+                row.appendChild(createQuantityButtons("1", cellKey, itemPrice));
+                row.appendChild(createTableCell(itemPrice, cellKey + "3"));
+                row.append(createRemoveButton(cellKey));
+                totalAmount += itemDetails["itemPrice"];
+
+                document.querySelector("#transTable tbody").prepend(row);
+              }
+              let convertedTotal = Math.round(totalAmount * 100) / 100;
+              // totalwithtax = (12 / 100) * convertedTotal;
+              // totalwithtax += totalAmount;
+              $("#transaction-total").text("Total: " + convertedTotal);
+              $("#textbox").val("");
+            } else {
+              $("#textbox").val("");
+              $("#error-message").text(itemDetails);
+              $(".error-alert").addClass("show");
+              $(".error-alert").removeClass("hide");
+              $(".error-alert").addClass("showAlert");
+              setTimeout(function () {
+                $(".error-alert").removeClass("show");
+                $(".error-alert").addClass("hide");
+              }, 5000);
             }
-            let convertedTotal = Math.round(totalAmount * 100) / 100;
-            // totalwithtax = (12 / 100) * convertedTotal;
-            // totalwithtax += totalAmount;
-            $("#transaction-total").text("Total: " + convertedTotal);
-            $("#textbox").val("");
           } else {
             $("#textbox").val("");
             $("#error-message").text(itemDetails);
