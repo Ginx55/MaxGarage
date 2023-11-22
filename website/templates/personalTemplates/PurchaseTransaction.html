@@ -710,7 +710,19 @@
 
     $(document).on("submit", "#payment", function (e) {
       e.preventDefault();
-      handlePayment();
+      if (totalAmount > 0) {
+        handlePayment();
+      } else {
+        $("#paymentText").val("");
+        $("#error-message").text("Error: No current transaction!");
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
+      }
     });
 
     $(document).on("submit", "#printReceipt", function (e) {
