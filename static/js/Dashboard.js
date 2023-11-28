@@ -33,7 +33,7 @@ let now = push(child(ref(db), "Return")).key;
 const returnedQuery = query(
   returnRef,
   orderByChild("status"),
-  equalTo("return outwards")
+  equalTo("returned to supplier")
 );
 
 let returnCount = 0;

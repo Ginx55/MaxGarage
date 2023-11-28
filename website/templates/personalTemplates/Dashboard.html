@@ -5,73 +5,12 @@
   href="{% static 'css/Dashboard.css' %}"
 />
 <link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{% static 'css/DashboardResponsive.css' %}"
+/>
 
-<style>
-  /* General Styles */
-  .transDetails {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 70%;
-    transform: translate(-50%, -50%);
-    background-color: var(--color-background);
-    border: 3px solid var(--color-dark);
-    border-radius: var(--border-radius-1);
-    padding: 15px;
-    display: none;
-  }
-
-  .closeButton {
-    float: right;
-    background-color: var(--color-background);
-    color: var(--color-dark);
-    cursor: pointer;
-  }
-
-  /* Image Styles */
-  .tableFixHead img {
-    height: 5rem;
-    width: 5rem;
-    display: block;
-    margin: 0 auto;
-  }
-
-  /* Table Styles */
-  .transDetails table {
-    background: var(--color-white);
-    width: 100%;
-    height: 100%;
-    padding: var(--card-padding);
-    text-align: center;
-    box-shadow: var(--box-shadow);
-    transition: all 300ms ease;
-    border-radius: var(--border-radius-1);
-  }
-
-  .transDetails table tbody td {
-    height: 2.8rem;
-    border-bottom: 1px solid var(--color-light);
-    color: var(--color-dark-variant);
-  }
-
-  /* Scrollable Table Head Styles */
-  .tableFixHead {
-    overflow-y: auto;
-    height: 18rem;
-    margin-right: 10px;
-  }
-
-  .tableFixHead thead th {
-    position: sticky;
-    top: 0px;
-  }
-
-  /* Label Styles */
-  .transLabels {
-    font-size: 15px;
-    gap: 5px;
-  }
-</style>
 <main>
   <div class="right">
     <div class="top">
@@ -109,16 +48,18 @@
       <div class="insights">
         <div class="sales">
           <a href="{% url 'TransactionLog' %}">
-            <canvas id="weeklySales" width="130" height="130"></canvas>
+            <canvas id="weeklySales" width="100%" height="100%"></canvas>
           </a>
         </div>
 
         <div class="expenses">
           <a href="{% url 'TransactionLog' %}">
-            <canvas id="topItems" width="130" height="130"></canvas>
+            <canvas id="topItems" width="100%" height="100%"></canvas>
           </a>
         </div>
+      </div>
 
+      <div class="insights4columns insights">
         <div class="income">
           <a href="{% url 'Return' %}">
             <span class="material-symbols-outlined">assignment_return</span>
@@ -328,6 +269,9 @@
             ],
           },
         ],
+      },
+      options: {
+        responsive: true,
       },
     });
   })();

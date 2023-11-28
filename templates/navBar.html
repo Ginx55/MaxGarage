@@ -552,6 +552,18 @@
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
   <script src="{% static 'js/JsBarcode.all.min.js' %}"></script>
   <script>
+    const sideMenu = document.querySelector("aside");
+    const menuBtn = document.querySelector("#menu-btn");
+    const closeBtn = document.querySelector("#close-btn");
+    menuBtn.addEventListener("click", () => {
+      sideMenu.style.display = "block";
+    });
+
+    // close sidebar //
+    closeBtn.addEventListener("click", () => {
+      sideMenu.style.display = "none";
+    });
+
     function showAlert(alertType, message, notificationCondition) {
       $(".custom-error-alert").css("bottom", "10px");
       $(".custom-warning-alert").css("bottom", "10px");
