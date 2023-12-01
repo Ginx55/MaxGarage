@@ -418,6 +418,122 @@ nav::-webkit-scrollbar {
     margin-top: 4rem;
   } */
 }
+
+select {
+  height: 30px;
+  padding: 5px;
+}
+
+.addExpiryBtn {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addExpiryBtn p {
+  text-decoration: underline;
+  color: #41f1b6;
+}
+
+.addExpiryBtn span {
+  font-size: 1.5rem;
+  color: #41f1b6;
+}
+
+.expiryList {
+  background-color: var(--color-info-dark);
+  border-color: red;
+  margin-top: 1rem;
+  padding: 5px;
+}
+
+.expiryList b {
+  color: var(--color-background);
+}
+.expiryList span {
+  color: var(--color-background);
+}
+
+.expiryButtons {
+  float: right;
+}
+.expiryButtons span {
+  font-size: 1.3rem;
+}
+
+.scroll {
+  height: 8rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.vertically-aligned {
+  line-height: 100%;
+  vertical-align: middle;
+}
+
+.margin {
+  margin-left: 50px;
+}
+
+.add-item-image {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 0.5rem;
+}
+
+.add-item-image label {
+  cursor: pointer;
+}
+
+.add-item-image-holder {
+  text-align: center;
+  padding: 3%;
+  border: thin solid black;
+  height: 11.5rem;
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.additem-scroll {
+  height: 42rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.img {
+  height: 11.5rem;
+  width: 100%;
+  background-color: white;
+  padding: 3%;
+  display: none;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px; /* Adjust margin as needed */
+}
+
+.button-container button {
+  margin-left: 5px; /* Adjust margin between buttons as needed */
+}
+
+.button-container button {
+  padding: 0.45rem;
+}
+
 @media screen and (max-width: 768px) {
   .container {
     width: 100%;
@@ -518,6 +634,11 @@ nav::-webkit-scrollbar {
   }
   .right .top button span {
     font-size: 2rem;
+  }
+
+  .add-item-image {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 }
 
