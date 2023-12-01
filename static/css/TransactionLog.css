@@ -1,0 +1,329 @@
+/* Styling for .transDetails class */
+.transDetails {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 70%;
+  transform: translate(-50%, -50%);
+  background-color: var(--color-background);
+  border: 3px solid var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 15px;
+  display: none;
+}
+
+/* Styling for .reportTables button */
+.reportTables button {
+  padding: 10px;
+  background-color: var(--color-white);
+  color: var(--color-dark);
+  cursor: pointer;
+}
+
+/* Styling for .closeButton class */
+.closeButton {
+  float: right;
+  background-color: var(--color-background);
+  color: var(--color-dark);
+  cursor: pointer;
+}
+
+/* Styling for .transDetails .reportTables */
+.transDetails .reportTables {
+  display: grid;
+  grid-template-columns: 80% 20%;
+}
+
+/* Styling for .transLabels textarea */
+.transLabels textarea {
+  width: 100%;
+  font-family: "Poppins", sans-serif;
+  border-radius: var(--border-radius-1);
+}
+
+/* Styling for .transDetails table */
+.transDetails table {
+  background: var(--color-white);
+  width: 100%;
+  height: 100%;
+  padding: var(--card-padding);
+  text-align: center;
+  box-shadow: var(--box-shadow);
+  transition: all 300ms ease;
+  border-radius: var(--border-radius-1);
+}
+.transDetails table tbody td {
+  height: 2.8rem;
+  border-bottom: 1px solid var(--color-light);
+  color: var(--color-dark-variant);
+}
+
+/* Styling for .tableFixHead class */
+.tableFixHead {
+  overflow-y: auto;
+  height: 20rem;
+  margin-right: 10px;
+}
+
+/* Styling for .reportTables .tableFixHead */
+.reportTables .tableFixHead {
+  overflow-y: auto;
+  height: 30rem;
+  margin-right: 10px;
+}
+
+/* Styling for .tableFixHead thead th */
+.tableFixHead thead th {
+  position: sticky;
+  top: 0px;
+}
+
+/* Styling for .transLabels class */
+.transLabels {
+  font-size: 15px;
+  gap: 5x;
+}
+
+/* Styling for .downloadForm input */
+.downloadForm input {
+  background: var(--color-white);
+  color: var(--color-dark);
+  box-sizing: border-box;
+  border-radius: var(--border-radius-1);
+  width: 100%;
+  text-align: center;
+  padding: 5px;
+  margin-bottom: 5px;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Styling for Sales Report Buttons */
+.downloadForm button {
+  border-radius: var(--border-radius-1);
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+}
+.submitBT {
+  background-color: green;
+}
+.downloadBT {
+  background: rgb(116, 116, 86);
+}
+.closeBT {
+  background-color: red;
+}
+
+/* Styling for .chartHolder class */
+.chartHolder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin: 20px;
+}
+
+/* Styling for .chartBorder class */
+.chartBorder {
+  width: 50%;
+  background: var(--color-white);
+  padding: var(--card-padding);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+/* Styling for canvas element */
+canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Styling for main .TableContents */
+main .TableContents {
+  margin-top: 2rem;
+}
+
+/* Styling for main .TableContents h2 */
+main .TableContents h2 {
+  margin-bottom: 0.8rem;
+}
+
+/* Styling for main .TableContents table */
+main .TableContents table {
+  background: var(--color-white);
+  width: 100%;
+  height: 20%;
+  border-radius: var(--card-border-radius);
+  padding: var(--card-padding);
+  text-align: center;
+  box-shadow: var(--box-shadow);
+  transition: all 300ms ease;
+}
+
+/* Styling for main .TableContents table:hover */
+main .TableContents table:hover {
+  box-shadow: none;
+}
+
+/* Styling for main table tbody td */
+main table tbody td {
+  height: 2.8rem;
+  border-bottom: 1px solid var(--color-light);
+  color: var(--color-dark-variant);
+}
+
+/* Styling for main table tbody tr:last-child td */
+main table tbody tr:last-child td {
+  border: none;
+}
+
+/* Styling for main table thead th */
+main table thead th {
+  width: 1rem;
+}
+
+/* Styling for main .TableContents a */
+main .TableContents a {
+  display: block;
+  margin-top: 1rem;
+  color: var(--color-primary);
+}
+
+/* Styling for .searchBarcode input */
+.searchBarcode input {
+  font-size: 17px;
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 5px;
+  margin-bottom: 5px;
+}
+
+/* Styling for .searchBarcode span */
+.searchBarcode span {
+  font-size: 16px;
+  color: var(--color-dark);
+}
+
+/* Styling for .searchBarcode button */
+.searchBarcode button {
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 6px;
+}
+
+/* Styling for .receiptBTN class */
+.receiptBTN {
+  float: right;
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 10px;
+}
+
+/* Styling for .addBatch class */
+.addBatch {
+  display: none;
+}
+
+/* Styling for .TableContents .search class */
+.TableContents .search {
+  float: right;
+  text-align: center;
+}
+
+/* Styling for .TableContents .search input */
+.TableContents .search input {
+  background: var(--color-white);
+  color: var(--color-dark);
+  box-sizing: border-box;
+  border-radius: var(--border-radius-1);
+  width: 10rem;
+  height: 2.6rem;
+  padding: 0.46rem;
+  margin-bottom: 5px;
+  font-family: "Poppins", sans-serif;
+}
+
+/* Styling for .TableContents .search button */
+.TableContents .search button {
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 0.46rem;
+  font-family: "Poppins", sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Styling for .tableFixHead img */
+.tableFixHead img {
+  height: 5rem;
+  width: 5rem;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Styling for .circle-icon class */
+.circle-icon {
+  background: #03dac6;
+  color: var(--color-white);
+  border-radius: 50%;
+  text-align: center;
+  vertical-align: middle;
+  padding: 1rem;
+  font-size: 2.3rem;
+  cursor: pointer;
+}
+
+/* Styling for .float class */
+.float {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  bottom: 60px;
+  right: 40px;
+  color: #fff;
+}
+
+@media screen and (max-width: 1200px) {
+  .chartHolder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin: 20px;
+  }
+
+  /* Styling for .chartBorder class */
+  .chartBorder {
+    width: 100%;
+    background: var(--color-white);
+    padding: var(--card-padding);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--box-shadow);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .chartHolder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin: 20px;
+  }
+
+  /* Styling for .chartBorder class */
+  .chartBorder {
+    width: 100%;
+    background: var(--color-white);
+    padding: var(--card-padding);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--box-shadow);
+  }
+}
