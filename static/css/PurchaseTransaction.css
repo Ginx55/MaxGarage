@@ -46,6 +46,7 @@ main .TableContents a {
 /* Search Barcode Styles */
 .searchBarcode input {
   font-size: 17px;
+  width: 75%;
   background: var(--color-white);
   color: var(--color-dark);
   border-radius: var(--border-radius-1);
