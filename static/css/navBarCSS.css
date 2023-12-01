@@ -423,10 +423,6 @@ nav::-webkit-scrollbar {
     width: 100%;
     grid-template-columns: 1fr;
   }
-  .dashboardColumn {
-    width: 100%;
-    grid-template-columns: 1fr;
-  }
 
   aside {
     position: fixed;
