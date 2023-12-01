@@ -1,0 +1,323 @@
+/* General Styles */
+main .TableContents {
+  margin-top: 2rem;
+}
+
+main .TableContents h2 {
+  margin-bottom: 0.8rem;
+}
+
+/* Table Styles */
+main .TableContents table {
+  background: var(--color-white);
+  width: 100%;
+  height: 20%;
+  border-radius: var(--card-border-radius);
+  padding: var(--card-padding);
+  text-align: center;
+  box-shadow: var(--box-shadow);
+  transition: all 300ms ease;
+}
+
+main .TableContents table:hover {
+  box-shadow: none;
+}
+
+main table tbody td {
+  height: 2.8rem;
+  border-bottom: 1px solid var(--color-light);
+  color: var(--color-dark-variant);
+}
+
+main table tbody tr:last-child td {
+  border: none;
+}
+
+main table thead th {
+  width: 1rem;
+}
+
+main .TableContents a {
+  display: block;
+  margin-top: 1rem;
+  color: var(--color-primary);
+}
+
+/* Search Barcode Styles */
+.searchBarcode input {
+  font-size: 17px;
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 5px;
+  margin-bottom: 5px;
+}
+
+.searchBarcode span,
+.searchBarcode button {
+  font-size: 16px;
+  color: var(--color-dark);
+  background: var(--color-white);
+  border-radius: var(--border-radius-1);
+  padding: 6px;
+}
+
+/* Receipt Button Styles */
+.receiptBTN {
+  float: right;
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 10px;
+}
+
+/* Additional Styles */
+.addBatch {
+  display: none;
+}
+
+/* Search Styles */
+.TableContents .search {
+  float: right;
+  text-align: center;
+}
+
+.TableContents .search input {
+  background: var(--color-white);
+  color: var(--color-dark);
+  box-sizing: border-box;
+  border-radius: var(--border-radius-1);
+  width: 10rem;
+  height: 2.6rem;
+  padding: 0.46rem;
+  margin-bottom: 5px;
+  font-family: "Poppins", sans-serif;
+}
+
+.TableContents .search button {
+  background: var(--color-white);
+  color: var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 0.46rem;
+  font-family: "Poppins", sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Circle Icon Styles */
+.circle-icon {
+  background: #03dac6;
+  color: var(--color-white);
+  border-radius: 50%;
+  text-align: center;
+  vertical-align: middle;
+  padding: 1rem;
+  font-size: 2.3rem;
+  cursor: pointer;
+}
+
+/* Floating Action Button Styles */
+.float {
+  position: fixed;
+  width: 60px;
+  height: 60px;
+  bottom: 60px;
+  right: 40px;
+  color: #fff;
+}
+
+/* Transaction Input Styles */
+.transInput {
+  display: grid;
+  grid-template-columns: 74% 26%;
+  gap: 15px;
+}
+
+/* Preview Styles */
+.previews {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  text-align: center;
+  align-items: center;
+  height: 100%;
+}
+
+.parentContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.newScan {
+  background: var(--color-white);
+  border-radius: var(--card-border-radius);
+  padding: 1rem;
+  box-shadow: var(--box-shadow);
+  transition: all 300ms ease;
+  margin-bottom: 1.5rem;
+  height: 70%;
+  width: 100%;
+}
+
+/* Receipt Design Styles */
+.receipt-table {
+  text-align: center;
+  border-top: 1px solid black;
+  border-collapse: collapse;
+}
+
+td.description,
+th.description {
+  width: 75px;
+  max-width: 75px;
+}
+
+td.quantity,
+th.quantity {
+  width: 40px;
+  max-width: 40px;
+  word-break: break-all;
+}
+
+td.price,
+th.price {
+  width: 40px;
+  max-width: 40px;
+  word-break: break-all;
+}
+
+.centered {
+  text-align: center;
+  align-content: center;
+}
+
+/* Ticket Styles for Printing */
+.ticket {
+  position: fixed;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  font-size: 12px;
+  font-family: "Times New Roman";
+  width: 155px;
+  max-width: 155px;
+}
+
+@media print {
+  * {
+    visibility: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  #printableArea * {
+    visibility: visible;
+  }
+}
+
+/* Row Styles */
+.row {
+  display: table;
+  width: 155px;
+  max-width: 155px;
+  table-layout: fixed;
+}
+
+.row p,
+.row span {
+  display: table-cell;
+  padding: 0 1rem;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.row p {
+  width: 35%;
+}
+
+/* Additional Table Styles */
+.additional-table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.additional-table-row {
+  display: table-row;
+}
+
+.additional-table-cell {
+  display: table-cell;
+  text-align: center;
+}
+
+.additional-table-cell.middle {
+  border: none;
+}
+
+/* Adjust the width of additional table cells based on the original table */
+.additional-table .additional-table-cell:first-child {
+  width: 40px; /* Same as the width of quantity column in the original table */
+  max-width: 40px;
+  text-align: left;
+}
+
+.additional-table .additional-table-cell.middle {
+  width: 75px; /* Same as the width of description column in the original table */
+  max-width: 75px;
+}
+
+.additional-table .additional-table-cell:last-child {
+  width: 40px; /* Same as the width of price column in the original table */
+  max-width: 40px;
+}
+
+@media screen and (max-width: 1200px) {
+  .newScan {
+    background: var(--color-white);
+    border-radius: var(--card-border-radius);
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+    transition: all 300ms ease;
+    margin-bottom: 1.5rem;
+    height: 10rem;
+    width: 100%;
+  }
+
+  .container {
+    width: 94%;
+    grid-template-columns: 7rem auto;
+  }
+
+  .transInput {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Change to a single column */
+    gap: 15px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .newScan {
+    background: var(--color-white);
+    border-radius: var(--card-border-radius);
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+    transition: all 300ms ease;
+    margin-bottom: 1.5rem;
+    height: 10rem;
+    width: 100%;
+  }
+
+  .container {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .transInput {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Change to a single column */
+    gap: 15px;
+  }
+}
