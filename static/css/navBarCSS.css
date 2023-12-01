@@ -435,6 +435,7 @@ nav::-webkit-scrollbar {
     height: 110vh;
     padding-right: var(--card-padding);
     display: none;
+    overflow-y: auto;
     /* script for menu */
     animation: showMenu 400ms ease forwards;
   }
