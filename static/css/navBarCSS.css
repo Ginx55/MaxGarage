@@ -62,6 +62,10 @@ body {
   color: var(--color-dark);
 }
 
+body button {
+  cursor: pointer;
+}
+
 .container {
   display: grid;
   width: 96%;
@@ -397,31 +401,11 @@ nav::-webkit-scrollbar {
   width: 55%;
 }
 
-/* RESPONSIVE */
-@media screen and (max-width: 1200px) {
-  .container {
-    width: 94%;
-    grid-template-columns: 7rem auto 23rem;
-  }
-  aside .logo img {
-    height: 3rem;
-    width: 3em;
-    margin-left: 1.6rem;
-  }
-  aside .logo h2 {
-    display: none;
-  }
-
-  aside .sidebar h3 {
-    display: none;
-  }
-  aside .sidebar a {
-    width: 5.6em;
-  }
-  /* aside .sidebar a:last-child {
-    position: relative;
-    margin-top: 4rem;
-  } */
+.barcode-popup {
+  width: 25%;
+}
+.barcode-popup h1 {
+  text-align: center;
 }
 
 select {
@@ -507,7 +491,7 @@ select {
 }
 
 .additem-scroll {
-  height: 42rem;
+  height: 40rem;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -536,6 +520,33 @@ input[type="file"] {
 
 .button-container button {
   padding: 0.45rem;
+}
+
+/* RESPONSIVE */
+@media screen and (max-width: 1200px) {
+  .container {
+    width: 94%;
+    grid-template-columns: 7rem auto 23rem;
+  }
+  aside .logo img {
+    height: 3rem;
+    width: 3em;
+    margin-left: 1.6rem;
+  }
+  aside .logo h2 {
+    display: none;
+  }
+
+  aside .sidebar h3 {
+    display: none;
+  }
+  aside .sidebar a {
+    width: 5.6em;
+  }
+  /* aside .sidebar a:last-child {
+    position: relative;
+    margin-top: 4rem;
+  } */
 }
 
 @media screen and (max-width: 768px) {
@@ -647,6 +658,15 @@ input[type="file"] {
 
   .add-item-form {
     width: 20rem;
+  }
+  .barcode-popup {
+    width: 15rem;
+  }
+
+  .barcode-popup .form-buttons button {
+    margin-top: 5px;
+    padding: 0.45rem;
+    width: 100%;
   }
 }
 
