@@ -668,6 +668,16 @@ input[type="file"] {
     padding: 0.45rem;
     width: 100%;
   }
+
+  .additem-scroll .form-buttons{
+    width: 100%;
+  }
+
+  .additem-scroll .form-buttons button {
+    margin-top: 5px;
+    padding: 0.45rem;
+    width: 100%;
+  }
 }
 
 @media screen and (max-width: 600px) {

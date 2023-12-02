@@ -152,7 +152,7 @@
   </div>
 </main>
 
-<div class="form-popup additem-scroll" id="editItemForm" style="width: 55%">
+<div class="form-popup additem-scroll add-item-form" id="editItemForm">
   <form class="form-container" id="editItem">
     {% csrf_token %}
     <h1 style="text-align: center">Edit Item</h1>
@@ -183,7 +183,7 @@
             type="text"
             placeholder="Item ID"
             id="editItemID"
-            style="width: 85%"
+            style="width: 80%"
             required
           />
           <span
