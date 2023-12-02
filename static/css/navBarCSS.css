@@ -392,6 +392,10 @@ nav::-webkit-scrollbar {
   align-items: center;
 }
 
+.add-item-form {
+  width: 55%;
+}
+
 /* RESPONSIVE */
 @media screen and (max-width: 1200px) {
   .container {
@@ -417,6 +421,10 @@ nav::-webkit-scrollbar {
     position: relative;
     margin-top: 4rem;
   } */
+
+  .add-item-form {
+    width: 20rem;
+  }
 }
 
 select {
