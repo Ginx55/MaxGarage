@@ -51,7 +51,6 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.js"></script>
 
     <title>{{Title}}</title>
-
   </head>
   <body>
     <script>
@@ -327,8 +326,16 @@
               />
             </div>
           </div>
-
           <div>
+            <div>
+              <p>Max Quantity</p>
+              <input
+                type="number"
+                placeholder="Max Quantity"
+                id="itemMaxQuantity"
+                required
+              />
+            </div>
             <div>
               <p>Item Price</p>
               <input
@@ -336,15 +343,6 @@
                 step="0.01"
                 placeholder="Item Price"
                 id="itemPrice"
-                required
-              />
-            </div>
-            <div>
-              <p>Max Quantity</p>
-              <input
-                type="number"
-                placeholder="Max Quantity"
-                id="itemMaxQuantity"
                 required
               />
             </div>

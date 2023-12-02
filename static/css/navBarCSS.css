@@ -291,6 +291,7 @@ aside .sidebar .message-count {
   transform: translate(-50%, -50%);
   padding: 10px;
   border-radius: var(--border-radius-1);
+  z-index: 10;
 }
 
 .form-container input {
@@ -421,10 +422,6 @@ nav::-webkit-scrollbar {
     position: relative;
     margin-top: 4rem;
   } */
-
-  .add-item-form {
-    width: 20rem;
-  }
 }
 
 select {
@@ -491,7 +488,6 @@ select {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
-  padding: 0.5rem;
 }
 
 .add-item-image label {
@@ -647,6 +643,10 @@ input[type="file"] {
   .add-item-image {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .add-item-form {
+    width: 20rem;
   }
 }
 
