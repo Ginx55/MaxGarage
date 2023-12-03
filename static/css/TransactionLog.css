@@ -61,6 +61,7 @@
 /* Styling for .tableFixHead class */
 .tableFixHead {
   overflow-y: auto;
+  overflow-x: hidden;
   height: 20rem;
   margin-right: 10px;
 }
@@ -325,5 +326,9 @@ main .TableContents a {
     padding: var(--card-padding);
     border-radius: var(--card-border-radius);
     box-shadow: var(--box-shadow);
+  }
+
+  .transDetails {
+    width: 30rem;
   }
 }
