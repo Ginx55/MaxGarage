@@ -660,16 +660,27 @@ input[type="file"] {
     width: 20rem;
   }
   .barcode-popup {
-    width: 15rem;
+    width: 80%;
+    min-width: 20rem;
   }
 
+  .barcode-popup .form-buttons {
+    width: 100%;
+  }
+  
   .barcode-popup .form-buttons button {
     margin-top: 5px;
     padding: 0.45rem;
     width: 100%;
   }
 
-  .additem-scroll .form-buttons{
+  .additem-scroll {
+    height: 80%;
+    width: 90%;
+    min-width: 20rem;
+  }
+
+  .additem-scroll .form-buttons {
     width: 100%;
   }
 
