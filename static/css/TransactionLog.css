@@ -58,25 +58,11 @@
   color: var(--color-dark-variant);
 }
 
-/* Styling for .tableFixHead class */
-.tableFixHead {
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: 20rem;
-  margin-right: 10px;
-}
-
 /* Styling for .reportTables .tableFixHead */
 .reportTables .tableFixHead {
   overflow-y: auto;
   height: 30rem;
   margin-right: 10px;
-}
-
-/* Styling for .tableFixHead thead th */
-.tableFixHead thead th {
-  position: sticky;
-  top: 0px;
 }
 
 /* Styling for .transLabels class */
@@ -333,5 +319,18 @@ main .TableContents a {
     min-width: 30rem;
     height: 75%;
     overflow-y: auto;
+  }
+
+  .transDetails .reportTables {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .transDetails .reportTables > *:first-child {
+    order: 2;
+  }
+
+  .transDetails .reportTables > *:last-child {
+    order: 1;
   }
 }
