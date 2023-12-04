@@ -1,35 +1,6 @@
 {% extends 'navBar.html'%} {%load static%} {% block PageContents%}
-<link rel="stylesheet" type="text/css" href="{% static 'css/Tables.css' %}" />
-<style>
-  .actDetails {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 30%;
-    background-color: var(--color-background);
-    border: 3px solid var(--color-dark-variant);
-    padding: 5px;
-    display: none;
-    border-radius: var(--border-radius-1);
-  }
+<link rel="stylesheet" type="text/css" href="{% static 'css/SystemActivities.css' %}" />
 
-  .closeButton {
-    float: right;
-    background-color: var(--color-background);
-    color: var(--color-dark);
-  }
-
-  .transLabels {
-    font-size: 15px;
-    gap: 5x;
-  }
-
-  #activityDetails {
-    max-height: 200px; /* Set your desired maximum height */
-    overflow: auto; /* Enable both horizontal and vertical scrolling if needed */
-  }
-</style>
 <main>
   <div class="right">
     <div class="top">
@@ -105,7 +76,10 @@
     <b> Actions Made: </b> <span id="action"></span><br />
     <br />
     <b>Info:</b><br /><br />
-    <div id="activityDetails"></div>
+    <div class="detailsScroll">
+      <div id="activityDetails"></div>
+    </div>
+
   </div>
 </div>
 
@@ -128,7 +102,7 @@
 
       // Create a single span with the value
       const spanValue = document.createElement("span");
-      $(spanValue).text("\u00A0\u00A0" + ": " + values);
+      $(spanValue).text("\u00A0\u00A0" + values);
 
       activityList.append(spanValue, br);
     }
