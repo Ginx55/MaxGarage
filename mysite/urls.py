@@ -23,6 +23,9 @@ urlpatterns = [
 
     # Authentication
     path('', views.login, name="LogIn"),
+    path('AccountSetUp/', views.AccountSetUp, name="AccountSetUp"),
+    path('insertAccount/', views.insertAccount, name="insertAccount"),
+
     path('ForgotPass/', views.ForgotPass, name="ForgotPass"),
     path('send_forgot_pass/', views.send_forgot_pass, name="send_forgot_pass"),
 

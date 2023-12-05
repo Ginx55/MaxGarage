@@ -227,7 +227,7 @@
           $("#switch-container").show();
         }
         const img = document.getElementById("editImgPreview");
-        if (img.src != null) {
+        if (userData.imgsrc != "") {
           $("#editImageHolder").hide();
           $("#editImgPreview").show();
         } else {
@@ -298,6 +298,8 @@
       let type = imgDetails.type;
       let size = imgDetails.size + "bytes";
       previewImage(imgDetails, "editImgPreview");
+      $("#editImageHolder").hide();
+      $("#editImgPreview").show();
     } else {
       imagePreview.src = "";
       console.error("Please select a picture");
@@ -343,6 +345,7 @@
         $("#editUsername").val("");
         $("#editEmail").val("");
         $("#editContact").val("");
+        $("#editImageFile").val("");
 
         // Display success message
         $("#success-message").text(response.message);

@@ -31,8 +31,8 @@ firebase = pyrebase.initialize_app(config)
 authentication = firebase.auth()
 db = firebase.database()
 storage = firebase.storage()
-# Create your views here.
 
+# Create your views here.
 def send_email(subject_message, email_message):
     recipient_list = []
     user_data_list = db.child("Users").order_by_child("status").equal_to(True).get().val()
@@ -48,12 +48,80 @@ def send_email(subject_message, email_message):
     email.send()
 
 # LogIn
-def firebase_login(email, password):
+def log_in(email, password):
     try:
+        user_data = db.child("Users").order_by_child("email").equal_to(email).get().val()
+        user_data_key = list(user_data.keys())[0]
+        if user_data and "tempPassword" in user_data[user_data_key]:
+            if password == user_data[user_data_key]["tempPassword"]:
+
+                return "SetUp"
+            else:
+                return None
+        
         user = authentication.sign_in_with_email_and_password(email, password)
         return user
     except pyrebase.pyrebase.HTTPError as e:
         return None
+
+def AccountSetUp(request):
+    return render(request, "personalTemplates/AccountSetUp.html")
+
+def insertAccount(request):
+    password = request.POST.get('password')
+    confirmpass = request.POST.get('confirmpass')
+
+    if password == confirmpass:
+        email = request.session['email']
+
+        user = authentication.create_user_with_email_and_password(email, password)
+
+        user_data = db.child("Users").order_by_child("email").equal_to(email).get().val()
+        user_data_key = list(user_data.keys())[0]
+        
+        db.child("Users").child(user_data_key).child("tempPassword").remove()
+
+        current_date = str(date.today())
+        newData = {
+            "lastLogin" : current_date,
+            "userID" : user['localId']
+        }
+        db.child("Users").child(user_data_key).update(newData)
+        
+        user = log_in(email, password)        
+        if user:
+            local_id = user['localId']
+
+            user_data = db.child("Users").order_by_child("userID").equal_to(local_id).get().val()
+
+            if user_data:
+                user_data_key = list(user_data.keys())[0]
+
+                if user_data[user_data_key]["status"]:
+                    db.child("Users").child(user_data_key).set(user_data[user_data_key], user['idToken'])
+
+                    update_last_login(user_data_key)
+
+                    role = user_data[user_data_key]['role']
+                    request.session['sessionID'] = user['idToken']
+                    request.session['username'] = user_data[user_data_key]['username']
+                    request.session['role'] = role
+                    request.session['uid'] = local_id
+
+                    if role == "Cashier":
+                        return JsonResponse({'authenticated': True, 'redirect_url': '/PurchaseTransaction/'})
+                    else:
+                        return JsonResponse({'authenticated': True, 'redirect_url': '/Dashboard/'})
+                    
+                else:
+                    return JsonResponse({'authenticated': False, 'error_message': 'Account Disabled!'})
+            else:
+                return JsonResponse({'authenticated': False, 'error_message': 'Account not found!'}, status=400)
+        else:
+            return JsonResponse({'authenticated': False, 'error_message': 'Invalid credentials!'}, status=400)
+
+    else:
+        return JsonResponse({'authenticated': False, 'error_message': 'Password and Confirm Password doesnt match!'}, status=400)
 
 def update_last_login(user_key):
     current_date = str(date.today())
@@ -66,7 +134,11 @@ def login(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
 
-        user = firebase_login(email, password)
+        user = log_in(email, password)
+        if user == "SetUp":
+            request.session['email'] = email
+            return JsonResponse({'authenticated': True, 'redirect_url': '/AccountSetUp/'})
+        
         if user:
             local_id = user['localId']
 
@@ -1573,7 +1645,6 @@ def AddUser(request):
         if request.method == "POST":
             form = AddUserForm(request.POST)
             if form.is_valid():
-                # Do something with the valid form data
                 data = form.cleaned_data
 
                 username = data['username']
@@ -1586,19 +1657,17 @@ def AddUser(request):
                 if check_user:
                     errors = {'email': 'Email already exists'}
                     return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
- 
-                user = authentication.create_user_with_email_and_password(email, password)
-                localID = user['localId']
 
                 image_file = request.FILES.get('image')
                 imgsrc = ""
+                uniqueID = generate_unique_id()
 
                 if image_file is not None:
                     file_extension = get_file_extension(image_file.name)
-
+                    
                     if file_extension == '.gif' or is_image(image_file):
-                        storage.child("user_profiles/" + localID).put(image_file)
-                        imgsrc = getImageURL("user_profiles/", localID)
+                        storage.child("user_profiles/" + uniqueID).put(image_file)
+                        imgsrc = getImageURL("user_profiles/", uniqueID)
                     else:
                         error_message = "Invalid file format."
                         return JsonResponse({"message": "Invalid data", "errors": {"file": [error_message]}}, status=400)
@@ -1606,7 +1675,6 @@ def AddUser(request):
                 current_date = str(date.today())
                 negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
                 userData = {
-                    "userID": localID,
                     "dateCreated": current_date,
                     "username": username,
                     "role": role,
@@ -1617,6 +1685,8 @@ def AddUser(request):
                     "status": True,
                     "lastLogin": "",
                     "imgsrc" : imgsrc,
+                    "tempPassword" : password,
+                    "imageName" : uniqueID,
                 }
                 db.child("Users").push(userData)
                 return JsonResponse({"message": "User added successfully"})
@@ -1717,75 +1787,84 @@ def SaveUser(request):
     if request.session['role'] != 'Admin':
         raise Http404("You do not have permission to access this page.")
     
-    try:
-        if request.method == 'POST':
-            form = EditUserForm(request.POST)
+    # try:
+    if request.method == 'POST':
+        form = EditUserForm(request.POST)
 
-            if form.is_valid():
-                data = form.cleaned_data
+        if form.is_valid():
+            data = form.cleaned_data
 
-                userKey = request.session['userKey']
-                userData = db.child("Users").child(userKey).get().val()
+            userKey = request.session['userKey']
+            userData = db.child("Users").child(userKey).get().val()
 
-                image_file = request.FILES.get('image')
-                imgsrc = userData["imgsrc"]
+            image_file = request.FILES.get('image')
+            imgsrc = userData["imgsrc"]
 
-                if image_file is not None:
-                    file_extension = get_file_extension(image_file.name)
-                    if file_extension == '.gif' or is_image(image_file):
-                        storage.child("user_profiles/" + userData["userID"]).put(image_file)
-                        imgsrc = getImageURL("user_profiles/", userData["userID"])
-                    else:
-                        error_message = "Invalid file format."
-                        return JsonResponse({"message": "Invalid data", "errors": {"file": [error_message]}}, status=400)
-
-                username = data['username']
-                contact = data['contact']
-                role = data['role']
-                status = data['status']
-
-                updatedData = {
-                    "username": username,
-                    "role": role,
-                    "contact": contact,
-                    "status": status,
-                    "imgsrc": imgsrc,
-                }
-                db.child("Users").child(userKey).update(updatedData)
-
-                changed_fields = {}
-                field_labels = {
-                    "username": "Username",
-                    "contact": "Contact",
-                    "role": "Role",
-                    "status": "Status"
-                }
-
-                for field, label in field_labels.items():
-                    if userData[field] != data[field]:
-                        changed_fields[label] = {
-                            "old": userData[field],
-                            "new": data[field]
-                        }
-                        
-                if changed_fields:
-                    add_system_activities(request, "updated a user", changed_fields)
-                return JsonResponse({"message": "User updated successfully"})
-            else:
-                # Form is not valid, you can access the custom error messages
-                errors = {
-                    'username': form.errors.get('username', [])[0] if 'username' in form.errors else None,
-                    'contact': form.errors.get('contact', [])[0] if 'contact' in form.errors else None,
-                    'role': form.errors.get('role', [])[0] if 'role' in form.errors else None,
-                    'status': form.errors.get('status', [])[0] if 'status' in form.errors else None,
-                    # Add other fields as needed
-                }
-                # Filter out None values
-                errors = {key: value for key, value in errors.items() if value is not None}
-                return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
+            uniqueID = userData["imageName"]
             
-    except Exception as e:
-        return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
+            if image_file is not None:
+                file_extension = get_file_extension(image_file.name)
+                if file_extension == '.gif' or is_image(image_file):
+                    try:
+                        storage.delete("user_profiles/" + uniqueID, request.session['sessionID'])
+                    except:
+                        pass
+                    
+                    uniqueID = generate_unique_id()
+                    storage.child("user_profiles/" + uniqueID).put(image_file)
+                    imgsrc = getImageURL("user_profiles/", uniqueID)
+                else:
+                    error_message = "Invalid file format."
+                    return JsonResponse({"message": "Invalid data", "errors": {"file": [error_message]}}, status=400)
+
+            username = data['username']
+            contact = data['contact']
+            role = data['role']
+            status = data['status']
+
+            updatedData = {
+                "username": username,
+                "role": role,
+                "contact": contact,
+                "status": status,
+                "imgsrc": imgsrc,
+                "imageName" : uniqueID,
+            }
+            db.child("Users").child(userKey).update(updatedData)
+
+            changed_fields = {}
+            field_labels = {
+                "username": "Username",
+                "contact": "Contact",
+                "role": "Role",
+                "status": "Status"
+            }
+
+            for field, label in field_labels.items():
+                if userData[field] != data[field]:
+                    changed_fields[label] = {
+                        "old": userData[field],
+                        "new": data[field]
+                    }
+                    
+            if changed_fields:
+                add_system_activities(request, "updated a user", changed_fields)
+            return JsonResponse({"message": "User updated successfully"})
+        else:
+            # Form is not valid, you can access the custom error messages
+            errors = {
+                'username': form.errors.get('username', [])[0] if 'username' in form.errors else None,
+                'contact': form.errors.get('contact', [])[0] if 'contact' in form.errors else None,
+                'role': form.errors.get('role', [])[0] if 'role' in form.errors else None,
+                'status': form.errors.get('status', [])[0] if 'status' in form.errors else None,
+                # Add other fields as needed
+            }
+            # Filter out None values
+            errors = {key: value for key, value in errors.items() if value is not None}
+            return JsonResponse({"error": "Form validation failed", "errors": errors}, status=400)
+        
+    # except Exception as e:
+    #     return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
 
 def restore_data(request):
     try:
