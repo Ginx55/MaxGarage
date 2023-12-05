@@ -1,0 +1,118 @@
+.transDetails {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 40%;
+  transform: translate(-50%, -50%);
+  background-color: var(--color-background);
+  border: 3px solid var(--color-dark);
+  border-radius: var(--border-radius-1);
+  padding: 15px;
+  display: none;
+}
+.transLabels {
+  font-size: 15px;
+  gap: 5x;
+}
+
+.form-group {
+  display: flex;
+  align-items: center; /* Vertically align label and input/select */
+  gap: 10px; /* Adjust the gap as needed */
+}
+
+.form-group label {
+  font-weight: bold;
+  width: 10.3rem; /* Fixed label width, adjust as needed */
+}
+
+.form-group p {
+  font-size: 13px;
+}
+.form-group select {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 5px;
+  width: 10rem;
+}
+.form-group input {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-top: 5px;
+  width: 5.5rem;
+}
+
+.closeButton {
+  float: right;
+  background-color: var(--color-background);
+  color: var(--color-dark);
+}
+.transDetails table {
+  background: var(--color-white);
+  width: 100%;
+  height: 100%;
+  padding: var(--card-padding);
+  text-align: center;
+  box-shadow: var(--box-shadow);
+  transition: all 300ms ease;
+  border-radius: var(--border-radius-1);
+}
+.transDetails table tbody td {
+  height: 2.8rem;
+  border-bottom: 1px solid var(--color-light);
+  color: var(--color-dark-variant);
+}
+.tableFixHead {
+  overflow-y: auto;
+  height: 180px;
+  margin-top: 0.5rem;
+}
+.tableFixHead thead th {
+  position: sticky;
+  top: 0px;
+}
+
+.transLabels input {
+  padding: 3px;
+  border: none;
+  background: #f1f1f1;
+  font-family: "Poppins", sans-serif;
+}
+
+.add-to-return-button {
+  text-align: right;
+  margin-top: 10px; /* Add spacing between the form and the button */
+  margin-bottom: 10px;
+}
+
+.add-to-return-button button {
+  background-color: var(--color-white);
+  padding: var(--card-padding);
+  color: var(--color-dark);
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.add-to-return-button button:hover {
+  background-color: #232930; /* Darker color on hover */
+}
+
+.tableFixHead img {
+  height: 5rem;
+  width: 5rem;
+
+  display: block;
+  margin: 0 auto;
+}
+
+@media screen and (max-width: 768px) {
+  .returnForm {
+    min-width: 25rem;
+    width: 75%;
+  }
+}
