@@ -13,7 +13,7 @@ from django.contrib import auth
 from django.core.mail import EmailMessage
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, Http404
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
 import pyrebase
@@ -206,6 +206,7 @@ def Dashboard(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] == 'Cashier':
         raise Http404("You do not have permission to access this page.")
@@ -244,7 +245,7 @@ def Dashboard(request):
     data = {
         "Title": "Dashboard",
         "User": request.session.get('username'),
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "TransactionList": transactionList,
         "ActivityList": activityList,
         "labels": labels,
@@ -270,7 +271,7 @@ def PurchaseTransaction(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
-    request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     thread = threading.Thread(target=check_quantities, args=(5,))
     thread.start()
@@ -278,7 +279,7 @@ def PurchaseTransaction(request):
     data = {
         "Title" : "Purchase Transaction",
         "User" : request.session['username'],
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "salesClass" : True,
         "role" : request.session['role'],
         "mode" : request.session['mode'],
@@ -466,6 +467,7 @@ def TransactionLog(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
 
@@ -490,7 +492,7 @@ def TransactionLog(request):
     data = {
         "Title": "Transaction Log",
         "User": request.session['username'],
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "TransactionList": transactionList,
         "labels": labels,
         "data": data,
@@ -514,6 +516,11 @@ def TransactionDetails(request):
             items_bought[index]["imgsrc"] = getImageURL("item_images/", item_bought["fixedID"])
         request.session['transactionKey'] = transactionID
         return JsonResponse(transaction)
+    
+def send_void_email(delay, transactionID, remarks):
+    time.sleep(delay)
+    subject, message = voided_transaction_message(transactionID, remarks)
+    send_email(subject, message)
 
 def VoidTransaction(request):
     if not request.session.get('sessionID'):
@@ -539,7 +546,6 @@ def VoidTransaction(request):
                         db.child("Items").child(item_key).update({"totalSold": new_total_sold})
                     else:
                         pass
-
             db.child("VoidedTransactions").push(transaction)
             db.child("TransactionLog").child(transactionKey).remove()
 
@@ -548,6 +554,9 @@ def VoidTransaction(request):
             }
             add_system_activities(request, "voided a transaction", removeValue)
 
+            thread = threading.Thread(target=send_void_email, args=(1, transaction['transactionID'], remarks))
+            thread.start()
+            
             return JsonResponse({"message": "The transaction has been successfully voided!"})
 
         except Exception as e:
@@ -578,6 +587,7 @@ def GetSalesReport(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] == 'Cashier':
         raise Http404("You do not have permission to access this page.")
@@ -620,13 +630,14 @@ def VoidedTransactions(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
     transactionList = db.child("VoidedTransactions").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
     data = {
         "Title" : "Voided Transactions",
         "User" : request.session['username'],
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "TransactionList" : transactionList,
         "salesClass" : True,
         "role" : request.session['role'],
@@ -706,13 +717,15 @@ class AddItemForm(forms.Form):
     itemPrice = forms.FloatField(validators=[MinValueValidator(0.0)], error_messages={
         'min_value': 'Item price must be a non-negative value.',
     })
-    itemQuantity = forms.IntegerField(validators=[MinValueValidator(0)], error_messages={
+    itemQuantity = forms.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1000)], error_messages={
         'min_value': 'Item quantity must be a non-negative integer.',
+        'max_value': 'Item quantity cannot exceed 1000.',
     })
-    itemMaxQuantity = forms.IntegerField(validators=[MinValueValidator(0)], error_messages={
+    itemMaxQuantity = forms.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1000)], error_messages={
         'min_value': 'Maximum quantity must be a non-negative integer.',
         'max_value': 'Maximum quantity cannot exceed 1000.',
     })
+
     itemCriticalQuantity = forms.IntegerField(validators=[MinValueValidator(0)], error_messages={
         'min_value': 'Critical quantity must be a non-negative integer.',
     })
@@ -722,14 +735,13 @@ class AddItemForm(forms.Form):
     # Custom validation example:
     def clean(self):
         cleaned_data = super().clean()
-        item_quantity = cleaned_data.get('itemQuantity')
         item_max_quantity = cleaned_data.get('itemMaxQuantity')
         item_critical_quantity = cleaned_data.get('itemCriticalQuantity')
 
-        if item_quantity is not None and item_max_quantity is not None and item_critical_quantity is not None:
-            if item_critical_quantity > item_max_quantity:
-                raise forms.ValidationError("Item critical quantity cannot be higher than the maximum quantity.")
-
+        if item_max_quantity is not None and item_critical_quantity is not None:
+            if item_critical_quantity >= item_max_quantity:
+                raise forms.ValidationError("Critical quantity must be less than the maximum quantity.")
+            
     def clean_expiryDates(self):
         expiry_dates = self.cleaned_data.get('expiryDates')
 
@@ -786,6 +798,7 @@ def add_item(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] == 'Cashier':
         raise Http404("You do not have permission to access this page.")
@@ -883,6 +896,7 @@ def EditItem(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] == 'Cashier':
         raise Http404("You do not have permission to access this page.")
@@ -922,6 +936,7 @@ def save_edit_item(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] == 'Cashier':
         raise Http404("You do not have permission to access this page.")
@@ -1073,6 +1088,7 @@ def item_list(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
@@ -1103,7 +1119,7 @@ def item_list(request):
     data = {
         "Title": "Item List",
         "User": request.session.get('username', ''),
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "Items": item_list,
         "itemClass": True,
         "role" : request.session['role'],
@@ -1150,6 +1166,7 @@ def remove_item(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] == 'Cashier':
         raise Http404("You do not have permission to access this page.")
@@ -1189,6 +1206,7 @@ def Return(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     
     negaInt  = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
@@ -1196,7 +1214,7 @@ def Return(request):
     data = {
         "Title" : "Return",
         "User" : request.session['username'],
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "ReturnList" : returnList,
         "role" : request.session['role'],
         "mode" : request.session['mode'],
@@ -1304,8 +1322,8 @@ def insert_return(request):
 
                     for index, item_bought in enumerate(items_bought):
                         if item_bought["fixedID"] == fixed_id:
+                            item_bought["returnedDate"] = current_date
                             if return_type == "Replacement":
-                                item_bought["returnedDate"] = current_date
                                 if item_details:
                                     current_quantity = int(item_details[item_key]['itemQuantity'])
                                     remaining_quantity = max(current_quantity - int(returned_quantity), 0)
@@ -1316,7 +1334,7 @@ def insert_return(request):
                                 new_quantity = max(int(bought_quantity) - int(returned_quantity), 0)
 
                                 if new_quantity == 0:
-                                    item_bought["itemStatus"] = "REFUNDED"
+                                    item_bought["itemQuantity"] = "REFUNDED"
                                     item_bought["itemPrice"] = "REFUNDED"
                                 else:
                                     item_bought["itemQuantity"] = new_quantity
@@ -1338,6 +1356,13 @@ def insert_return(request):
                     }
 
                     db.child("Return").push(return_data)
+                    returnValue = {
+                        "Transaction ID": transID,
+                        "Item Name" : item_name,
+                        "Returned Quantity" : returned_quantity,
+                        "Return Type" : return_type,
+                    }
+                    add_system_activities(request, "added a return", returnValue)
 
                 data_update = [item for index, item in enumerate(items_bought)]
 
@@ -1395,6 +1420,14 @@ def ItemReceived(request):
             db.child("Items").child(item_key).update({"itemQuantity": new_quantity})
             db.child("Return").child(returnID).child("status").set("received")
 
+            returnValue = {
+                "Transaction ID": returnData["transactionID"],
+                "Item Name" : returnData["itemName"],
+                "Returned Quantity" : quantity,
+                "Status" : "received",
+            }
+            add_system_activities(request, "updated a return", returnValue)
+            
             return JsonResponse({"message": "Item has been successfully marked as received."})
         else:
             return JsonResponse({"error": "Cannot find the item in inventory."}, status=404)
@@ -1417,6 +1450,7 @@ def SystemActivities(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] != 'Admin':
         raise Http404("You do not have permission to access this page.")
@@ -1438,7 +1472,7 @@ def SystemActivities(request):
     data = {
         "Title" : "Audit Trail",
         "User" : request.session['username'],
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "ActivityList" : activityList,
         "role" : request.session['role'],
         "mode" : request.session['mode'],
@@ -1458,6 +1492,7 @@ def add_system_activities(request, activity, updatedValues):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     int_current_date = datetime.now()
     intDate = int(int_current_date.strftime("%Y%m%d%H%M%S"))
@@ -1493,6 +1528,7 @@ def ViewSystemActivities(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] != 'Admin':
         raise Http404("You do not have permission to access this page.")
@@ -1517,6 +1553,7 @@ def RecycleBin(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     
     if request.session['role'] == 'Cashier':
@@ -1527,7 +1564,7 @@ def RecycleBin(request):
     data = {
         "Title" : "Archive",
         "User" : request.session['username'],
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "BinList": binList,
         "role" : request.session['role'],
         "mode" : request.session['mode'],
@@ -1549,6 +1586,7 @@ def UserList(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     
     if request.session['role'] != 'Admin':
@@ -1559,7 +1597,7 @@ def UserList(request):
     data = {
         "Title" : "User List",
         "User" : request.session['username'],
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "UserList" : userList,
         "role" : request.session['role'],
         "mode" : request.session['mode'],
@@ -1637,6 +1675,7 @@ def AddUser(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] != 'Admin':
         raise Http404("You do not have permission to access this page.")
@@ -1720,6 +1759,7 @@ def SearchUser(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     if request.session['role'] != 'Admin':
         raise Http404("You do not have permission to access this page.")
@@ -1783,7 +1823,8 @@ def SaveUser(request):
     request.session['username'] = user_data[user_data_key]['username']
     request.session['role'] = user_data[user_data_key]['role']
     request.session['uid'] = local_id
-    
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
+
     if request.session['role'] != 'Admin':
         raise Http404("You do not have permission to access this page.")
     
@@ -1880,6 +1921,7 @@ def restore_data(request):
         request.session['username'] = user_data[user_data_key]['username']
         request.session['role'] = user_data[user_data_key]['role']
         request.session['uid'] = local_id
+        request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
         if request.session['role'] == 'Cashier':
             raise Http404("You do not have permission to access this page.")
@@ -1931,6 +1973,7 @@ def CriticalQuantities(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
@@ -1962,7 +2005,7 @@ def CriticalQuantities(request):
     data = {
         "Title": "Critical Quantities",
         "User": request.session.get('username', ''),
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "CriticalList": filtered_items,
         "itemClass": True,
         "role" : request.session['role'],
@@ -1985,6 +2028,7 @@ def AboutToExpire(request):
     request.session['role'] = user_data[user_data_key]['role']
     request.session['mode'] = user_data[user_data_key]['mode']
     request.session['uid'] = local_id
+    request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
     item_list = db.child("Items").order_by_child("negaIntDate").start_at(nega_int).get().val()
@@ -2021,7 +2065,7 @@ def AboutToExpire(request):
     data = {
         "Title": "About To Expire",
         "User": request.session['username'],
-        "imageURL" : getImageURL("user_profiles/", request.session.get('uid')),
+        "imageURL" : request.session['imgsrc'],
         "AboutToExpire": filtered_items,
         "itemClass": True,
         "role" : request.session['role'],
@@ -2035,6 +2079,89 @@ def getItemData(request):
     return JsonResponse(item_list)
 
 # FOR SENDING EMAILS
+def voided_transaction_message(transaction_id, remarks):
+    current_date = str(date.today())
+    current_date_time = datetime.now()
+    current_time = current_date_time.strftime("%I:%M %p")
+
+    subject = "Transaction Voided - Important Notification"
+    
+    message = f"""
+Automated System Notification:
+
+This message serves as an alert for a recently voided transaction:
+
+Transaction ID: {transaction_id}
+Voided Date: {current_date + " " + current_time}
+Remarks: {remarks}
+
+Please review the voided transaction and take any necessary actions.
+
+Thank you for your attention.
+
+Best regards,
+
+MXGM
+Date: {current_date}
+Time: {current_time}
+"""
+
+    return subject, message
+
+def email_expiry_contents(expiry_datelist):
+    current_date = str(date.today())
+    current_date_time = datetime.now()
+    current_time = current_date_time.strftime("%I:%M %p")
+
+    subject = "Inventory Alert - Expiry Notification"
+    
+    message = """
+Automated System Notification:
+
+This message serves as an alert for items that are about to expire or have already expired:
+
+"""
+
+    for entry in expiry_datelist:
+        item_name = entry['item_name']
+        expired_items = entry['expired']
+        about_to_expire_items = entry['about_to_expire']
+
+        if expired_items:
+            message += f"{item_name} - Expired Items:\n"
+            for item in expired_items:
+                expiry_date = item['date'].strftime("%Y-%m-%d")
+                message += f"""
+Expiry Date: {expiry_date}
+Status: EXPIRED
+-------------------------
+"""
+
+        if about_to_expire_items:
+            message += f"{item_name} - About to Expire Items:\n"
+            for item in about_to_expire_items:
+                expiry_date = item['date'].strftime("%Y-%m-%d")
+                within_days = item['within_days']
+                message += f"""
+Expiry Date: {expiry_date}
+Status: About to expire {within_days}
+-------------------------
+"""
+
+    message += f"""
+Timely action is advised to manage these items efficiently. Please review and address this matter promptly to ensure product quality and customer satisfaction.
+
+Thank you for your attention.
+
+Best regards,
+
+MXGM
+Date: {current_date}
+Time: {current_time}
+"""
+
+    return subject, message
+
 def email_critical_contents(items):
     current_date = str(date.today())
     current_date_time = datetime.now()
@@ -2114,100 +2241,6 @@ Time: {current_time}
 
     return subject, message
 
-def email_overstocked_contents(items):
-    current_date = str(date.today())
-    current_date_time = datetime.now()
-    current_time = current_date_time.strftime("%I:%M %p")
-
-    subject = "Inventory Alert - Overstocked Quantity"
-    
-    message = """
-Automated System Notification:
-
-This message serves as an alert that the inventory levels have exceeded the acceptable quantity threshold for the following items:
-
-"""
-
-    for item in items:
-        item_name = item['item_name']
-        current_quantity = item['current_quantity']
-        overstocked_quantity = item['overstocked_quantity']
-
-        message += f"""
-Item: {item_name}
-Current Quantity: {current_quantity}
-Critical Quantity: {overstocked_quantity}
--------------------------
-"""
-
-    message += f"""
-Timely action is advised to manage the excess inventory efficiently. Please review and address this matter promptly to optimize inventory levels.
-
-Thank you for your attention.
-
-Best regards,
-
-MXGM
-Date: {current_date}
-Time: {current_time}
-"""
-
-    return subject, message
-
-def email_expiry_contents(expiry_datelist):
-    current_date = str(date.today())
-    current_date_time = datetime.now()
-    current_time = current_date_time.strftime("%I:%M %p")
-
-    subject = "Inventory Alert - Expiry Notification"
-    
-    message = """
-Automated System Notification:
-
-This message serves as an alert for items that are about to expire or have already expired:
-
-"""
-
-    for entry in expiry_datelist:
-        item_name = entry['item_name']
-        expired_items = entry['expired']
-        about_to_expire_items = entry['about_to_expire']
-
-        if expired_items:
-            message += f"{item_name} - Expired Items:\n"
-            for item in expired_items:
-                expiry_date = item['date'].strftime("%Y-%m-%d")
-                message += f"""
-Expiry Date: {expiry_date}
-Status: EXPIRED
--------------------------
-"""
-
-        if about_to_expire_items:
-            message += f"{item_name} - About to Expire Items:\n"
-            for item in about_to_expire_items:
-                expiry_date = item['date'].strftime("%Y-%m-%d")
-                within_days = item['within_days']
-                message += f"""
-Expiry Date: {expiry_date}
-Status: About to expire {within_days}
--------------------------
-"""
-
-    message += f"""
-Timely action is advised to manage these items efficiently. Please review and address this matter promptly to ensure product quality and customer satisfaction.
-
-Thank you for your attention.
-
-Best regards,
-
-MXGM
-Date: {current_date}
-Time: {current_time}
-"""
-
-    return subject, message
-
 def check_all_expiry(expiry_dates):
     current_date = datetime.now()
     
@@ -2237,7 +2270,7 @@ def check_all_expiry(expiry_dates):
             earliest_expiry_date = date
     
     return expired_dates, about_to_expire_dates
-    
+
 def check_quantities(delay):
     time.sleep(delay)
     item_list = db.child("Items").get().val()
@@ -2321,6 +2354,7 @@ def color_modes(request):
         request.session['username'] = user_data[user_data_key]['username']
         request.session['role'] = user_data[user_data_key]['role']
         request.session['uid'] = local_id
+        request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
         if request.method == 'POST':
             mode = request.POST.get('mode')

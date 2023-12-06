@@ -479,14 +479,16 @@
   let itemsBought;
   function openRemarks() {
     for (let x = 0; x < itemsBought.length; x++) {
-      const option = document.createElement("option");
-      $(option).text(itemsBought[x]["itemName"]);
-      option.setAttribute("value", itemsBought[x]["itemName"]);
-      option.setAttribute("data-quantity", itemsBought[x]["itemQuantity"]);
-      option.setAttribute("data-id", itemsBought[x]["itemID"]);
-      option.setAttribute("id", itemsBought[x]["fixedID"]);
+      if (itemsBought[x]["itemQuantity"] != "REFUNDED") {
+        const option = document.createElement("option");
+        $(option).text(itemsBought[x]["itemName"]);
+        option.setAttribute("value", itemsBought[x]["itemName"]);
+        option.setAttribute("data-quantity", itemsBought[x]["itemQuantity"]);
+        option.setAttribute("data-id", itemsBought[x]["itemID"]);
+        option.setAttribute("id", itemsBought[x]["fixedID"]);
 
-      $("#retuned-item-name").append(option);
+        $("#retuned-item-name").append(option);
+      }
     }
     $("#add-return").show();
   }

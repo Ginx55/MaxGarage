@@ -100,6 +100,7 @@
 
 .add-to-return-button button:hover {
   background-color: #232930; /* Darker color on hover */
+  color: white;
 }
 
 .tableFixHead img {
