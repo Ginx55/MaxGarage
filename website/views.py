@@ -54,14 +54,14 @@ def log_in(email, password):
         user_data_key = list(user_data.keys())[0]
         if user_data and "tempPassword" in user_data[user_data_key]:
             if password == user_data[user_data_key]["tempPassword"]:
-
                 return "SetUp"
             else:
                 return None
-        
         user = authentication.sign_in_with_email_and_password(email, password)
         return user
     except pyrebase.pyrebase.HTTPError as e:
+        return None
+    except:
         return None
 
 def AccountSetUp(request):
