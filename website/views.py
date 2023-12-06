@@ -1096,24 +1096,25 @@ def item_list(request):
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
     item_list = db.child("Items").order_by_child("negaIntDate").start_at(nega_int).limit_to_first(10).get().val()
 
-    for key, item in item_list.items():
-        try:
-            item_quantity = item.get("itemQuantity", 0)
-            critical_quantity = item.get("itemCriticalQuantity", 0)
-            max_quantity = item.get("itemMaxQuantity", 0)
-            item_class = "danger" if item_quantity <= critical_quantity else ("warning" if item_quantity > max_quantity else "")
-            item["itemClass"] = item_class
+    if item_list:
+        for key, item in item_list.items():
+            try:
+                item_quantity = item.get("itemQuantity", 0)
+                critical_quantity = item.get("itemCriticalQuantity", 0)
+                max_quantity = item.get("itemMaxQuantity", 0)
+                item_class = "danger" if item_quantity <= critical_quantity else ("warning" if item_quantity > max_quantity else "")
+                item["itemClass"] = item_class
 
-            expiry = item.get("expiryDate", [])
-            date_list = sorted([{"notify": ex.get("notify", ""), "date": ex.get("date", "")} for ex in expiry], key=lambda ex: datetime.strptime(ex["date"], "%Y-%m-%d"))
+                expiry = item.get("expiryDate", [])
+                date_list = sorted([{"notify": ex.get("notify", ""), "date": ex.get("date", "")} for ex in expiry], key=lambda ex: datetime.strptime(ex["date"], "%Y-%m-%d"))
 
-            expiry_status, first_expiry_date = check_expiry(date_list)
-            item["expiryClass"] = expiry_status
-            item["expiryDate"] = first_expiry_date
+                expiry_status, first_expiry_date = check_expiry(date_list)
+                item["expiryClass"] = expiry_status
+                item["expiryDate"] = first_expiry_date
 
-        except Exception as e:
-            item["expiryClass"] = ""
-            item["expiryDate"] = ""
+            except Exception as e:
+                item["expiryClass"] = ""
+                item["expiryDate"] = ""
 
     thread = threading.Thread(target=check_quantities, args=(5,))
     thread.start()
