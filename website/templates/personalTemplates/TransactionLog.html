@@ -935,6 +935,12 @@
     datatable.draw(false);
   });
 
+  onChildChanged(reference, (data) => {
+    const newRowData = createTableRowData(data.val());
+    const row = datatable.row("#" + data.key + "0");
+    row.data(newRowData).draw(false);
+  });
+
   onChildRemoved(reference, (data) => {
     datatable
       .row($("#" + data.key + "0"))

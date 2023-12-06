@@ -638,8 +638,28 @@
     $(document).on("submit", "#barcodeForm", function (e) {
       e.preventDefault(); // Prevent default form submission
       var inputValue = $("#barcodeText").val();
-      if (inputValue.length > 12 || inputValue.length < 8) {
+      if (inputValue.length > 12) {
         $("#barcodeText").css("border", "2px solid red");
+
+        $("#error-message").text("Barcode should be less than 13 characters");
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
+      } else if (inputValue.length < 8) {
+        $("#barcodeText").css("border", "2px solid red");
+
+        $("#error-message").text("Barcode should be greater than 7 characters");
+        $(".error-alert").addClass("show");
+        $(".error-alert").removeClass("hide");
+        $(".error-alert").addClass("showAlert");
+        setTimeout(function () {
+          $(".error-alert").removeClass("show");
+          $(".error-alert").addClass("hide");
+        }, 5000);
       } else {
         $("#barcodeText").css("border", "");
         generateBarcode("barcode", inputValue);
