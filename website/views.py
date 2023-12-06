@@ -1987,20 +1987,21 @@ def CriticalQuantities(request):
 
     filtered_items = dict(islice(filtered_items.items(), 10))
 
-    for item in filtered_items.values():
-        try:
-            expiry = item.get("expiryDate", [])
-            date_list = [{"notify": ex["notify"], "date": ex["date"]} for ex in expiry]
-            date_list.sort(key=lambda ex: datetime.strptime(ex["date"], "%Y-%m-%d"))
+    if filtered_items:
+        for item in filtered_items.values():
+            try:
+                expiry = item.get("expiryDate", [])
+                date_list = [{"notify": ex["notify"], "date": ex["date"]} for ex in expiry]
+                date_list.sort(key=lambda ex: datetime.strptime(ex["date"], "%Y-%m-%d"))
 
-            expiry_status, first_expiry_date = check_expiry(date_list)
+                expiry_status, first_expiry_date = check_expiry(date_list)
 
-            item["expiryClass"] = expiry_status
-            item["expiryDate"] = first_expiry_date
+                item["expiryClass"] = expiry_status
+                item["expiryDate"] = first_expiry_date
 
-        except Exception as e:
-            item["expiryClass"] = ""
-            item["expiryDate"] = ""
+            except Exception as e:
+                item["expiryClass"] = ""
+                item["expiryDate"] = ""
     
     thread = threading.Thread(target=check_quantities, args=(5,))
     thread.start()
@@ -2037,28 +2038,29 @@ def AboutToExpire(request):
     item_list = db.child("Items").order_by_child("negaIntDate").start_at(nega_int).get().val()
     filtered_items = {}
     
-    for key, item in item_list.items():
-        try:
-            if item["itemQuantity"] <= item["itemCriticalQuantity"]:
-                item["itemClass"] = "danger"
-            elif item["itemQuantity"] > item["itemMaxQuantity"]:
-                item["itemClass"] = "warning"
-            else:
-                item["itemClass"] = ""
-        
-            expiry = item.get("expiryDate", [])
-            date_list = [{"notify": ex["notify"], "date": ex["date"]} for ex in expiry]
-            date_list.sort(key=lambda ex: datetime.strptime(ex["date"], "%Y-%m-%d"))
-
-            expiry_status, first_expiry_date = check_expiry(date_list)
+    if item_list:
+        for key, item in item_list.items():
+            try:
+                if item["itemQuantity"] <= item["itemCriticalQuantity"]:
+                    item["itemClass"] = "danger"
+                elif item["itemQuantity"] > item["itemMaxQuantity"]:
+                    item["itemClass"] = "warning"
+                else:
+                    item["itemClass"] = ""
             
-            if expiry_status != "notExpired":
-                item["expiryClass"] = expiry_status
-                item["expiryDate"] = first_expiry_date
-                filtered_items[key] = item
+                expiry = item.get("expiryDate", [])
+                date_list = [{"notify": ex["notify"], "date": ex["date"]} for ex in expiry]
+                date_list.sort(key=lambda ex: datetime.strptime(ex["date"], "%Y-%m-%d"))
 
-        except Exception as e:
-            pass
+                expiry_status, first_expiry_date = check_expiry(date_list)
+                
+                if expiry_status != "notExpired":
+                    item["expiryClass"] = expiry_status
+                    item["expiryDate"] = first_expiry_date
+                    filtered_items[key] = item
+
+            except Exception as e:
+                pass
 
     filtered_items = dict(islice(filtered_items.items(), 10))
 
