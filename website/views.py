@@ -65,6 +65,8 @@ def log_in(email, password):
         return None
 
 def AccountSetUp(request):
+    if not request.session.get('email'):
+        return redirect('LogIn')
     return render(request, "personalTemplates/AccountSetUp.html")
 
 def insertAccount(request):
