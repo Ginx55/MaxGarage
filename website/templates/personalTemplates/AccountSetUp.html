@@ -27,38 +27,40 @@
     ></script>
 
     <style>
-      .box {
-        height: 400px;
-      }
       input[type="submit"] {
         width: auto;
-      }
-
-      .box::before,
-      .box::after {
-        height: 400px;
       }
     </style>
 
     <title>Account Set Up</title>
   </head>
   <body>
-    <div class="box">
-      <form id="login-form" autocomplete="off">
-        {% csrf_token %}
-        <h2>Set Up</h2>
-        <div class="inputBox">
-          <input type="password" id="password" name="password" required />
-          <span>Password</span>
-          <i></i>
+    <div class="container">
+      <div class="content">
+        <img src="{%static 'img/logo.png'%}" alt="logo" />
+        <div class="box">
+          <form id="login-form" autocomplete="off">
+            {% csrf_token %}
+            <h2>Set Up</h2>
+            <div class="inputBox">
+              <input type="password" id="password" name="password" required />
+              <span>Password</span>
+              <i></i>
+            </div>
+            <div class="inputBox">
+              <input
+                type="password"
+                id="confirmpass"
+                name="confirmpass"
+                required
+              />
+              <span>Confirm Password</span>
+              <i></i>
+            </div>
+            <input type="submit" value="Proceed" />
+          </form>
         </div>
-        <div class="inputBox">
-          <input type="password" id="confirmpass" name="confirmpass" required />
-          <span>Confirm Password</span>
-          <i></i>
-        </div>
-        <input type="submit" value="Proceed" />
-      </form>
+      </div>
     </div>
 
     <div class="error-alert alert hide">

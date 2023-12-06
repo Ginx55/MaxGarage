@@ -28,26 +28,32 @@
 
     <title>LogIn</title>
   </head>
+
   <body>
-    <div class="box">
-      <form id="login-form" autocomplete="off">
-        {% csrf_token %}
-        <h2>Sign in</h2>
-        <div class="inputBox">
-          <input type="text" name="email" id="email" required />
-          <span>Email</span>
-          <i></i>
+    <div class="container">
+      <div class="content">
+        <img src="{%static 'img/logo.png'%}" alt="logo" />
+        <div class="box">
+          <form id="login-form" autocomplete="off">
+            {% csrf_token %}
+            <h2>Sign in</h2>
+            <div class="inputBox">
+              <input type="text" name="email" id="email" required />
+              <span>Email</span>
+              <i></i>
+            </div>
+            <div class="inputBox">
+              <input type="password" id="password" name="password" required />
+              <span>Password</span>
+              <i></i>
+            </div>
+            <div class="links">
+              <a href="{% url 'ForgotPass' %}">Forgot Password ?</a>
+            </div>
+            <input type="submit" value="Login" />
+          </form>
         </div>
-        <div class="inputBox">
-          <input type="password" id="password" name="password" required />
-          <span>Password</span>
-          <i></i>
-        </div>
-        <div class="links">
-          <a href="{% url 'ForgotPass' %}">Forgot Password ?</a>
-        </div>
-        <input type="submit" value="Login" />
-      </form>
+      </div>
     </div>
 
     <div class="error-alert alert hide">
