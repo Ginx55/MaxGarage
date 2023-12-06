@@ -1980,10 +1980,14 @@ def CriticalQuantities(request):
 
     
     nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
-    filtered_items = {
-        key: item for key, item in db.child("Items").order_by_child("negaIntDate").start_at(nega_int).get().val().items()
-        if item['itemQuantity'] <= item['itemCriticalQuantity']
-    }
+    filtered_items = {}
+    try:
+        filtered_items = {
+            key: item for key, item in db.child("Items").order_by_child("negaIntDate").start_at(nega_int).get().val().items()
+            if item['itemQuantity'] <= item['itemCriticalQuantity']
+        }
+    except:
+        pass
 
     filtered_items = dict(islice(filtered_items.items(), 10))
 
