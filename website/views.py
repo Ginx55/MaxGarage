@@ -696,7 +696,7 @@ def ReturnToInventory(request):
                 "Transaction ID" : transaction["transactionID"],
                 "Status" : "items returned to inventory"
             }
-            add_system_activities(request, "updated a voided transaction", avtivity)
+            add_system_activities(request, "updated a void transaction", avtivity)
             return HttpResponse("Items have been successfully returned to inventory!")
         except Exception as e:
             return HttpResponse(f"An error occurred: {str(e)}", status=500)
@@ -1975,7 +1975,7 @@ def restore_data(request):
                         'Item Name': original_data["itemName"],
                         'Barcode': original_data["itemID"],
                     }
-                    add_system_activities(request, "restored data", restored_data)
+                    add_system_activities(request, "restored item", restored_data)
                     return JsonResponse({"message": "Data restored successfully!"})
             else:
                 return JsonResponse({"message": "Data not found in the Archive"}, status=404)
