@@ -106,7 +106,9 @@ get(itemsRef)
           for (let x = 0; x < expiryDate.length; x++) {
             let expiry = expiryDate[x]["date"];
             let notify = expiryDate[x]["notify"];
+            
             if (checkExpiry(currentDate, expiry, notify, key)) {
+              console.log(data.val()[key])
               expiredKeys.push(key);
               expiredQuan++;
               break;

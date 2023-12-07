@@ -1054,32 +1054,31 @@ def save_edit_item(request):
         return JsonResponse({"message": "An unexpected error occurred"}, status=500)
 
 def check_expiry(expiry_dates):
-    ph_timezone = pytz.timezone('Asia/Manila')
-    current_date = datetime.now(ph_timezone)
-
+    current_date = datetime.now()
     expired_dates = []
     about_to_expire_dates = []
     earliest_expiry_date = None
     
-    for expiry_date in expiry_dates:
-        date = datetime.strptime(expiry_date["date"], "%Y-%m-%d")
-        notify_days = int(expiry_date["notify"])
-        threshold_date = date - timedelta(days=notify_days)
+    if expiry_dates:
+        for expiry_date in expiry_dates:
+            date = datetime.strptime(expiry_date["date"], "%Y-%m-%d")
+            notify_days = int(expiry_date["notify"])
+            threshold_date = date - timedelta(days=notify_days)
+            
+            if current_date >= date:
+                expired_dates.append(date)
+            elif current_date >= threshold_date:
+                about_to_expire_dates.append(date)
+            
+            if not earliest_expiry_date or date < earliest_expiry_date:
+                earliest_expiry_date = date
         
-        if current_date >= date:
-            expired_dates.append(date)
-        elif current_date >= threshold_date:
-            about_to_expire_dates.append(date)
-        
-        if not earliest_expiry_date or date < earliest_expiry_date:
-            earliest_expiry_date = date
-    
-    if expired_dates:
-        return "danger", min(expired_dates).strftime("%Y-%m-%d")
-    elif about_to_expire_dates:
-        return "warning", min(about_to_expire_dates).strftime("%Y-%m-%d")
-    else:
-        return "notExpired", earliest_expiry_date.strftime("%Y-%m-%d")
+        if expired_dates:
+            return "danger", min(expired_dates).strftime("%Y-%m-%d")
+        elif about_to_expire_dates:
+            return "warning", min(about_to_expire_dates).strftime("%Y-%m-%d")
+        else:
+            return "notExpired", earliest_expiry_date.strftime("%Y-%m-%d")
 
 def item_list(request):
     if not request.session.get('sessionID'):
@@ -2084,12 +2083,13 @@ def AboutToExpire(request):
                 date_list = [{"notify": ex["notify"], "date": ex["date"]} for ex in expiry]
                 date_list.sort(key=lambda ex: datetime.strptime(ex["date"], "%Y-%m-%d"))
 
-                expiry_status, first_expiry_date = check_expiry(date_list)
+                if expiry:
+                    expiry_status, first_expiry_date = check_expiry(date_list)
                 
-                if expiry_status != "notExpired":
-                    item["expiryClass"] = expiry_status
-                    item["expiryDate"] = first_expiry_date
-                    filtered_items[key] = item
+                    if expiry_status != "notExpired":
+                        item["expiryClass"] = expiry_status
+                        item["expiryDate"] = first_expiry_date
+                        filtered_items[key] = item
 
             except Exception as e:
                 pass
