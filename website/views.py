@@ -517,9 +517,9 @@ def TransactionDetails(request):
         request.session['transactionKey'] = transactionID
         return JsonResponse(transaction)
     
-def send_void_email(delay, transactionID, remarks):
+def send_void_email(delay, transactionID, remarks, request):
     time.sleep(delay)
-    subject, message = voided_transaction_message(transactionID, remarks)
+    subject, message = voided_transaction_message(request, transactionID, remarks)
     send_email(subject, message)
 
 def VoidTransaction(request):
@@ -554,7 +554,7 @@ def VoidTransaction(request):
             }
             add_system_activities(request, "voided a transaction", removeValue)
 
-            thread = threading.Thread(target=send_void_email, args=(1, transaction['transactionID'], remarks))
+            thread = threading.Thread(target=send_void_email, args=(1, transaction['transactionID'], remarks, request))
             thread.start()
             
             return JsonResponse({"message": "The transaction has been successfully voided!"})
