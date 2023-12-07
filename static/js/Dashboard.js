@@ -106,9 +106,8 @@ get(itemsRef)
           for (let x = 0; x < expiryDate.length; x++) {
             let expiry = expiryDate[x]["date"];
             let notify = expiryDate[x]["notify"];
-            
+
             if (checkExpiry(currentDate, expiry, notify, key)) {
-              console.log(data.val()[key])
               expiredKeys.push(key);
               expiredQuan++;
               break;
@@ -241,48 +240,48 @@ onChildAdded(logQuery, (data) => {
   document.querySelector("#reportTable tbody").prepend(tr);
 });
 
-// const actRef = ref(db, "SystemActivities");
-// const actQuery = query(actRef, orderByKey(), startAt(now));
-// onChildAdded(actQuery, (data) => {
-//   var rowCount = $("#updateData div").length;
-//   if (rowCount >= 9) {
-//     $("#updateData").find("div:last").remove();
-//     $("#updateData").find("div:last").remove();
-//     $("#updateData").find("div:last").remove();
-//   }
+const actRef = ref(db, "SystemActivities");
+const actQuery = query(actRef, orderByKey(), startAt(now));
+onChildAdded(actQuery, (data) => {
+  var rowCount = $("#updateData div").length;
+  if (rowCount >= 9) {
+    $("#updateData").find("div:last").remove();
+    $("#updateData").find("div:last").remove();
+    $("#updateData").find("div:last").remove();
+  }
 
-//   const divData = document.createElement("div");
-//   divData.className = "update";
+  const divData = document.createElement("div");
+  divData.className = "update";
 
-//   const divImage = document.createElement("div");
-//   divImage.className = "profile-photo";
+  const divImage = document.createElement("div");
+  divImage.className = "profile-photo";
 
-//   const image = document.createElement("img");
-//   divImage.appendChild(image);
-//   image.setAttribute("src" , data.val().imgsrc);
-//   const divMessage = document.createElement("div");
-//   divMessage.className = "message";
+  const image = document.createElement("img");
+  divImage.appendChild(image);
+  image.setAttribute("src", data.val().imgsrc);
+  const divMessage = document.createElement("div");
+  divMessage.className = "message";
 
-//   const p = document.createElement("p");
-//   const b = document.createElement("b");
-//   const text = document.createTextNode(data.val().actionsMade);
-//   $(b).text(data.val().currentUser);
+  const p = document.createElement("p");
+  const b = document.createElement("b");
+  const text = document.createTextNode(data.val().actionsMade);
+  $(b).text(data.val().currentUser);
 
-//   p.appendChild(b);
-//   p.appendChild(text);
+  p.appendChild(b);
+  p.appendChild(text);
 
-//   const small = document.createElement("small");
-//   small.className = "text-muted";
-//   $(small).text("2 Minutes Ago");
+  const small = document.createElement("small");
+  small.className = "text-muted";
+  $(small).text(data.val().dateCreated + "   " + data.val().timeCreated);
 
-//   divMessage.appendChild(p);
-//   divMessage.appendChild(small);
+  divMessage.appendChild(p);
+  divMessage.appendChild(small);
 
-//   divData.appendChild(divImage);
-//   divData.appendChild(divMessage);
+  divData.appendChild(divImage);
+  divData.appendChild(divMessage);
 
-//   document.querySelector("#updateData").prepend(divData);
-// });
+  document.querySelector("#updateData").prepend(divData);
+});
 
 const reference = ref(db, "Items/");
 function addTableItemClass(itemData) {
@@ -346,22 +345,82 @@ function expiryDataChecker(expiryDateParams) {
 
   return dataObject;
 }
+onChildAdded(reference, (data) => {
+  const itemData = data.val();
+
+  let combinedWarningMessage = "";
+  let combinedDangerMessage = "";
+
+  if (itemData.expiryDate) {
+    const dataObject = expiryDataChecker(itemData.expiryDate);
+    let checkexpiry = dataObject.class;
+
+    if (checkexpiry === "warning" && itemData.expiryNotif) {
+      combinedWarningMessage = "An item is about to expire";
+    } else if (checkexpiry === "danger" && itemData.expiryNotif) {
+      combinedDangerMessage = "An item is expired";
+    }
+  }
+
+  const quantityClass = addTableItemClass(itemData);
+  if (quantityClass == "danger" && itemData.criticalNotif) {
+    if (combinedDangerMessage) {
+      combinedDangerMessage += " and ";
+    }
+    combinedDangerMessage += "An item reached critical level";
+  } else if (quantityClass == "warning" && itemData.overStockNotif) {
+    if (combinedWarningMessage) {
+      combinedWarningMessage += " and ";
+    }
+    combinedWarningMessage += "An item is overstocked";
+  }
+
+  if (combinedWarningMessage) {
+    combinedWarningMessage += "!";
+    showAlert("warning", combinedWarningMessage, true);
+  }
+  if (combinedDangerMessage) {
+    combinedDangerMessage += "!";
+    showAlert("error", combinedDangerMessage, true);
+  }
+});
 
 onChildChanged(reference, (data) => {
   const itemData = data.val();
 
+  let combinedWarningMessage = "";
+  let combinedDangerMessage = "";
+
+  if (itemData.expiryDate) {
+    const dataObject = expiryDataChecker(itemData.expiryDate);
+    let checkexpiry = dataObject.class;
+
+    if (checkexpiry === "warning") {
+      combinedWarningMessage = "An item is about to expire";
+    } else if (checkexpiry === "danger") {
+      combinedDangerMessage = "An item is expired";
+    }
+  }
+
   const quantityClass = addTableItemClass(itemData);
-  if (quantityClass == "danger" && itemData.criticalNotif) {
-    showAlert(
-      "error",
-      "An item has reached a critical level",
-      itemData.criticalNotif
-    );
-  } else if (quantityClass == "warning" && itemData.overStockNotif) {
-    showAlert(
-      "warning",
-      "An item has reached an overstocked level",
-      itemData.overStockNotif
-    );
+  if (quantityClass == "danger") {
+    if (combinedDangerMessage) {
+      combinedDangerMessage += " and ";
+    }
+    combinedDangerMessage = "An item reached critical level";
+  } else if (quantityClass == "warning") {
+    if (combinedWarningMessage) {
+      combinedWarningMessage += " and ";
+    }
+    combinedWarningMessage += "An item is overstocked";
+  }
+
+  if (combinedWarningMessage) {
+    combinedWarningMessage += "!";
+    showAlert("warning", combinedWarningMessage, true);
+  }
+  if (combinedDangerMessage) {
+    combinedDangerMessage += "!";
+    showAlert("error", combinedDangerMessage, true);
   }
 });

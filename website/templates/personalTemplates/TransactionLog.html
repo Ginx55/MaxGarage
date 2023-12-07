@@ -1013,22 +1013,83 @@
     return dataObject;
   }
 
-  onChildChanged(itemreference, (data) => {
+  onChildAdded(itemreference, (data) => {
     const itemData = data.val();
+
+    let combinedWarningMessage = "";
+    let combinedDangerMessage = "";
+
+    if (itemData.expiryDate) {
+      const dataObject = expiryDataChecker(itemData.expiryDate);
+      let checkexpiry = dataObject.class;
+
+      if (checkexpiry === "warning" && itemData.expiryNotif) {
+        combinedWarningMessage = "An item is about to expire";
+      } else if (checkexpiry === "danger" && itemData.expiryNotif) {
+        combinedDangerMessage = "An item is expired";
+      }
+    }
 
     const quantityClass = addTableItemClass(itemData);
     if (quantityClass == "danger" && itemData.criticalNotif) {
-      showAlert(
-        "error",
-        "An item has reached a critical level",
-        itemData.criticalNotif
-      );
+      if (combinedDangerMessage) {
+        combinedDangerMessage += " and ";
+      }
+      combinedDangerMessage += "An item reached critical level";
     } else if (quantityClass == "warning" && itemData.overStockNotif) {
-      showAlert(
-        "warning",
-        "An item has reached an overstocked level",
-        itemData.overStockNotif
-      );
+      if (combinedWarningMessage) {
+        combinedWarningMessage += " and ";
+      }
+      combinedWarningMessage += "An item is overstocked";
+    }
+
+    if (combinedWarningMessage) {
+      combinedWarningMessage += "!";
+      showAlert("warning", combinedWarningMessage, true);
+    }
+    if (combinedDangerMessage) {
+      combinedDangerMessage += "!";
+      showAlert("error", combinedDangerMessage, true);
+    }
+  });
+
+  onChildChanged(itemreference, (data) => {
+    const itemData = data.val();
+
+    let combinedWarningMessage = "";
+    let combinedDangerMessage = "";
+
+    if (itemData.expiryDate) {
+      const dataObject = expiryDataChecker(itemData.expiryDate);
+      let checkexpiry = dataObject.class;
+
+      if (checkexpiry === "warning") {
+        combinedWarningMessage = "An item is about to expire";
+      } else if (checkexpiry === "danger") {
+        combinedDangerMessage = "An item is expired";
+      }
+    }
+
+    const quantityClass = addTableItemClass(itemData);
+    if (quantityClass == "danger") {
+      if (combinedDangerMessage) {
+        combinedDangerMessage += " and ";
+      }
+      combinedDangerMessage = "An item reached critical level";
+    } else if (quantityClass == "warning") {
+      if (combinedWarningMessage) {
+        combinedWarningMessage += " and ";
+      }
+      combinedWarningMessage += "An item is overstocked";
+    }
+
+    if (combinedWarningMessage) {
+      combinedWarningMessage += "!";
+      showAlert("warning", combinedWarningMessage, true);
+    }
+    if (combinedDangerMessage) {
+      combinedDangerMessage += "!";
+      showAlert("error", combinedDangerMessage, true);
     }
   });
 </script>
