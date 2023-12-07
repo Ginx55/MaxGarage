@@ -201,97 +201,6 @@
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <script>
-  (function () {
-    const labelsTopItems = [];
-    const dataTopItems = [];
-    const itemNameList = $("#itemNameList li");
-    for (let item of itemNameList) {
-      labelsTopItems.push($(item).text());
-    }
-
-    const totalSoldList = $("#totalSoldList li");
-    for (let totalSoldItem of totalSoldList) {
-      dataTopItems.push($(totalSoldItem).text());
-    }
-
-    new Chart(document.getElementById("topItems"), {
-      type: "bar",
-      data: {
-        labels: labelsTopItems,
-        datasets: [
-          {
-            label: "Top 5 Best-Selling Items",
-            data: dataTopItems,
-            backgroundColor: [
-              "#3498db", // Blue
-              "#2ecc71", // Green
-              "#e74c3c", // Red
-              "#8e44ad", // Purple
-              "#f39c12",
-            ],
-          },
-        ],
-      },
-      options: {
-        plugins: {
-          legend: {
-            labels: {
-              // This more specific font property overrides the global property
-              font: {
-                size: 17,
-              },
-            },
-          },
-        },
-      },
-    });
-  })();
-
-  (function () {
-    const dataWeeklySales = JSON.parse("{{ labels }}");
-    for (let x = 0; x < dataWeeklySales.length; x++) {
-      let convertedDate =
-        dataWeeklySales[x].toString().substring(0, 2) +
-        "-" +
-        dataWeeklySales[x].toString().substring(2);
-      dataWeeklySales[x] = convertedDate;
-    }
-
-    new Chart(document.getElementById("weeklySales"), {
-      type: "bar",
-      data: {
-        labels: dataWeeklySales,
-        datasets: [
-          {
-            label: "Weekly Sales",
-            data: JSON.parse("{{ data }}"),
-            backgroundColor: [
-              "#3498db",
-              "#2ecc71",
-              "#e74c3c",
-              "#9b59b6",
-              "#e67e22",
-              "#f1c40f",
-              "#1abc9c",
-            ],
-          },
-        ],
-      },
-      options: {
-        plugins: {
-          legend: {
-            labels: {
-              // This more specific font property overrides the global property
-              font: {
-                size: 17,
-              },
-            },
-          },
-        },
-      },
-    });
-  })();
-
   $("#reportTable tbody").on("click", "td:last-child", function () {
     let data = $(this).attr("id");
     viewTransactionDetails(data);
@@ -590,75 +499,6 @@
 </script>
 {% else %}
 <script>
-  (function () {
-    const labelsTopItems = [];
-    const dataTopItems = [];
-    const itemNameList = $("#itemNameList li");
-    for (let item of itemNameList) {
-      labelsTopItems.push($(item).text());
-    }
-
-    const totalSoldList = $("#totalSoldList li");
-    for (let totalSoldItem of totalSoldList) {
-      dataTopItems.push($(totalSoldItem).text());
-    }
-
-    new Chart(document.getElementById("topItems"), {
-      type: "bar",
-      data: {
-        labels: labelsTopItems,
-        datasets: [
-          {
-            label: "Top 5 best sellers",
-            data: dataTopItems,
-            backgroundColor: [
-              "#3498db",
-              "#2ecc71",
-              "#e74c3c",
-              "#9b59b6",
-              "#e67e22",
-              "#f1c40f",
-              "#1abc9c",
-            ],
-          },
-        ],
-      },
-    });
-  })();
-
-  (function () {
-    const dataWeeklySales = JSON.parse("{{ labels }}");
-    for (let x = 0; x < dataWeeklySales.length; x++) {
-      let convertedDate =
-        dataWeeklySales[x].toString().substring(0, 2) +
-        "-" +
-        dataWeeklySales[x].toString().substring(2);
-      dataWeeklySales[x] = convertedDate;
-    }
-
-    new Chart(document.getElementById("weeklySales"), {
-      type: "bar",
-      data: {
-        labels: dataWeeklySales,
-        datasets: [
-          {
-            label: "Weekly Sales",
-            data: JSON.parse("{{ data }}"),
-            backgroundColor: [
-              "#3498db",
-              "#2ecc71",
-              "#e74c3c",
-              "#9b59b6",
-              "#e67e22",
-              "#f1c40f",
-              "#1abc9c",
-            ],
-          },
-        ],
-      },
-    });
-  })();
-
   $("#reportTable tbody").on("click", "td:last-child", function () {
     let data = $(this).attr("id");
     viewTransactionDetails(data);
@@ -875,6 +715,10 @@
     onChildAdded,
     onChildChanged,
     onChildRemoved,
+    orderByChild,
+    limitToLast,
+    equalTo,
+    get,
     query,
     startAt,
     push,
@@ -951,6 +795,154 @@
       .remove()
       .draw(false);
   });
+
+  (function () {
+    const dataWeeklySales = JSON.parse("{{ labels }}");
+    for (let x = 0; x < dataWeeklySales.length; x++) {
+      let convertedDate =
+        dataWeeklySales[x].toString().substring(0, 2) +
+        "-" +
+        dataWeeklySales[x].toString().substring(2);
+      dataWeeklySales[x] = convertedDate;
+    }
+
+    const chartConfig = {
+      type: "bar",
+      data: {
+        labels: dataWeeklySales,
+        datasets: [
+          {
+            label: "Weekly Sales",
+            data: JSON.parse("{{ data }}"),
+            backgroundColor: [
+              "#3498db",
+              "#2ecc71",
+              "#e74c3c",
+              "#9b59b6",
+              "#e67e22",
+              "#f1c40f",
+              "#1abc9c",
+            ],
+          },
+        ],
+      },
+      options: {
+        plugins: {
+          legend: {
+            labels: {
+              // This more specific font property overrides the global property
+              font: {
+                size: 17,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const myChart = new Chart(
+      document.getElementById("weeklySales"),
+      chartConfig
+    );
+
+    // Function to update chart data
+    function updateChartData(labels, data) {
+      myChart.data.labels = labels;
+      myChart.data.datasets[0].data = data;
+      myChart.update();
+    }
+
+    let now = push(child(ref(db), "TransactionLog")).key;
+    const queryData = query(reference, orderByKey(), startAt(now));
+    onChildAdded(queryData, (data) => {
+      const newData = JSON.parse("{{ data }}");
+      newData[newData.length - 1] += data.val().totalPrice;
+      updateChartData(dataWeeklySales, newData);
+    });
+  })();
+
+  (function () {
+    const labelsTopItems = [];
+    const dataTopItems = [];
+    const itemNameList = $("#itemNameList li");
+    for (let item of itemNameList) {
+      labelsTopItems.push($(item).text());
+    }
+
+    const totalSoldList = $("#totalSoldList li");
+    for (let totalSoldItem of totalSoldList) {
+      dataTopItems.push($(totalSoldItem).text());
+    }
+
+    const chartConfig = {
+      type: "bar",
+      data: {
+        labels: labelsTopItems,
+        datasets: [
+          {
+            label: "Top 5 Best-Selling Items",
+            data: dataTopItems,
+            backgroundColor: [
+              "#3498db", // Blue
+              "#2ecc71", // Green
+              "#e74c3c", // Red
+              "#8e44ad", // Purple
+              "#f39c12",
+            ],
+          },
+        ],
+      },
+      options: {
+        plugins: {
+          legend: {
+            labels: {
+              // This more specific font property overrides the global property
+              font: {
+                size: 17,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const myChart = new Chart(document.getElementById("topItems"), chartConfig);
+    function updateChartData(chartData) {
+      myChart.data.labels = chartData.map((item) => item.itemName);
+      myChart.data.datasets[0].data = chartData.map((item) => item.totalSold);
+      myChart.update();
+    }
+
+    let now = push(child(ref(db), "TransactionLog")).key;
+    const queryData = query(reference, orderByKey(), startAt(now));
+    onChildAdded(queryData, (data) => {
+      const itemsReference = ref(db, "Items/");
+      const top5ItemsQuery = query(
+        itemsReference,
+        orderByChild("totalSold"),
+        limitToLast(5)
+      );
+      get(top5ItemsQuery)
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const top5Items = snapshot.val() || {};
+            const top5ItemsArray = Object.values(top5Items);
+            const sortedTop5Items = top5ItemsArray.sort(
+              (a, b) => a.totalSold - b.totalSold
+            );
+            const chartDataItem = sortedTop5Items.map((item) => ({
+              itemName: item.itemName,
+              totalSold: item.totalSold,
+            }));
+
+            updateChartData(chartDataItem);
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    });
+  })();
 
   const itemreference = ref(db, "Items/");
   function addTableItemClass(itemData) {

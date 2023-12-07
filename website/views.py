@@ -217,7 +217,7 @@ def Dashboard(request):
     thread = threading.Thread(target=check_quantities, args=(5,))
     thread.start()
 
-    topItemsSold = db.child("Items").order_by_child("itemSold").limit_to_first(5).get().val()
+    topItemsSold = db.child("Items").order_by_child("totalSold").limit_to_last(5).get().val()
 
     ph_timezone = pytz.timezone('Asia/Manila')
     current_date = datetime.now(ph_timezone)
@@ -473,7 +473,7 @@ def TransactionLog(request):
     negaInt = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
 
     transactionList = db.child("TransactionLog").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
-    topItemsSold = db.child("Items").order_by_child("itemSold").limit_to_first(5).get().val()
+    topItemsSold = db.child("Items").order_by_child("totalSold").limit_to_last(5).get().val()
 
     startDate = current_date - timedelta(6)
     date_range = [(startDate + timedelta(x)).strftime("%Y%m%d") for x in range((current_date - startDate).days + 1)]

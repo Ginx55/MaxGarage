@@ -165,8 +165,10 @@
                   <img src="{{value.imgsrc}}" alt="profile" />
                 </div>
                 <div class="message">
-                  <p><b>{{value.currentUser}}</b>   {{value.actionsMade}}</p>
-                  <small class="text-muted">{{value.dateCreated}}  {{value.timeCreated}}</small>
+                  <p><b>{{value.currentUser}}</b> {{value.actionsMade}}</p>
+                  <small class="text-muted"
+                    >{{value.dateCreated}} {{value.timeCreated}}</small
+                  >
                 </div>
               </div>
               {% endfor %}
@@ -235,80 +237,7 @@
   crossorigin="anonymous"
   referrerpolicy="no-referrer"
 ></script>
-<script type="module" src="{% static 'js/Dashboard.js' %}"></script>
 <script>
-  (function () {
-    const labelsTopItems = [];
-    const dataTopItems = [];
-    const itemNameList = $("#itemNameList li");
-    for (let item of itemNameList) {
-      labelsTopItems.push($(item).text());
-    }
-
-    const totalSoldList = $("#totalSoldList li");
-    for (let totalSoldItem of totalSoldList) {
-      dataTopItems.push($(totalSoldItem).text());
-    }
-
-    new Chart(document.getElementById("topItems"), {
-      type: "bar",
-      data: {
-        labels: labelsTopItems,
-        datasets: [
-          {
-            label: "Top 5 best sellers",
-            data: dataTopItems,
-            backgroundColor: [
-              "#3498db",
-              "#2ecc71",
-              "#e74c3c",
-              "#9b59b6",
-              "#e67e22",
-              "#f1c40f",
-              "#1abc9c",
-            ],
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-      },
-    });
-  })();
-
-  (function () {
-    const dataWeeklySales = JSON.parse("{{ labels }}");
-    for (let x = 0; x < dataWeeklySales.length; x++) {
-      let convertedDate =
-        dataWeeklySales[x].toString().substring(0, 2) +
-        "-" +
-        dataWeeklySales[x].toString().substring(2);
-      dataWeeklySales[x] = convertedDate;
-    }
-
-    new Chart(document.getElementById("weeklySales"), {
-      type: "bar",
-      data: {
-        labels: dataWeeklySales,
-        datasets: [
-          {
-            label: "Weekly Sales",
-            data: JSON.parse("{{ data }}"),
-            backgroundColor: [
-              "#3498db",
-              "#2ecc71",
-              "#e74c3c",
-              "#9b59b6",
-              "#e67e22",
-              "#f1c40f",
-              "#1abc9c",
-            ],
-          },
-        ],
-      },
-    });
-  })();
-
   $("#reportTable tbody").on("click", "td:last-child", function () {
     let data = $(this).attr("id");
     viewTransactionDetails(data);
@@ -444,5 +373,584 @@
   function closePopUp(id) {
     $("#" + id).hide();
   }
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import {
+    getDatabase,
+    ref,
+    onChildAdded,
+    onChildChanged,
+    onChildRemoved,
+    orderByChild,
+    limitToLast,
+    equalTo,
+    get,
+    query,
+    startAt,
+    push,
+    child,
+    orderByKey,
+  } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKBm5kuT0f-hwVg3ecC6SjZTE4MMxfRi4",
+    authDomain: "maxweb-5ea84.firebaseapp.com",
+    databaseURL:
+      "https://maxweb-5ea84-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "maxweb-5ea84",
+    storageBucket: "maxweb-5ea84.appspot.com",
+    messagingSenderId: "765328893873",
+    appId: "1:765328893873:web:9546126eb532e9165fff90",
+  };
+  const app = initializeApp(firebaseConfig);
+
+  const db = getDatabase();
+  const returnRef = ref(db, "Return");
+
+  let now = push(child(ref(db), "Return")).key;
+  const returnedQuery = query(
+    returnRef,
+    orderByChild("status"),
+    equalTo("returned to supplier")
+  );
+
+  let returnCount = 0;
+  get(returnedQuery)
+    .then((data) => {
+      if (data.exists()) {
+        returnCount = Object.keys(data.val()).length;
+        $("#returnedItems").text(returnCount);
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+
+  const returnQuery = query(returnRef, orderByKey(), startAt(now));
+  onChildAdded(returnQuery, (data) => {
+    if (data.val().status != "received") {
+      returnCount += 1;
+      $("#returnedItems").text(returnCount);
+    }
+  });
+
+  onChildChanged(returnRef, (data) => {
+    if (data.val().status == "received") {
+      returnCount -= 1;
+      $("#returnedItems").text(returnCount);
+    }
+  });
+
+  function checkExpiry(currentDate, expiryDate, notifyDate, key) {
+    let expiry = new Date(expiryDate);
+    let notify = Number(notifyDate);
+    let newExpiry = new Date(expiry.setDate(expiry.getDate() - notify));
+
+    if (currentDate >= newExpiry) {
+      if (expiredKeys.includes(key) == false) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  const itemsRef = ref(db, "Items");
+  let critKeys = [];
+  let overKeys = [];
+  let expiredKeys = [];
+  let critQuan = 0;
+  let overQuan = 0;
+  let expiredQuan = 0;
+  get(itemsRef)
+    .then((data) => {
+      if (data.exists()) {
+        for (let key in data.val()) {
+          let quantity = data.val()[key]["itemQuantity"];
+          let criticalQuantity = data.val()[key]["itemCriticalQuantity"];
+          let overQuantity = data.val()[key]["itemMaxQuantity"];
+
+          if (quantity <= criticalQuantity) {
+            critKeys.push(key);
+            critQuan++;
+          }
+          if (quantity > overQuantity) {
+            overKeys.push(key);
+            overQuan++;
+          }
+          if (typeof data.val()[key]["expiryDate"] != "undefined") {
+            const currentDate = new Date();
+            let expiryDate = data.val()[key]["expiryDate"];
+            for (let x = 0; x < expiryDate.length; x++) {
+              let expiry = expiryDate[x]["date"];
+              let notify = expiryDate[x]["notify"];
+
+              if (checkExpiry(currentDate, expiry, notify, key)) {
+                expiredKeys.push(key);
+                expiredQuan++;
+                break;
+              }
+            }
+          }
+        }
+        $("#criticalStock").text(critQuan);
+        $("#overStocked").text(overQuan);
+        $("#aboutToExpire").text(expiredQuan);
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+
+  onChildChanged(itemsRef, (data) => {
+    if (critKeys.includes(data.key)) {
+      if (data.val().itemQuantity >= data.val().itemCriticalQuantity) {
+        critKeys.splice(critKeys.indexOf(data.key), 1);
+        critQuan -= 1;
+      }
+    } else {
+      if (data.val().itemQuantity <= data.val().itemCriticalQuantity) {
+        critKeys.push(data.key);
+        critQuan += 1;
+      }
+    }
+
+    if (overKeys.includes(data.key)) {
+      if (data.val().itemQuantity <= data.val().itemMaxQuantity) {
+        overKeys.splice(overKeys.indexOf(data.key), 1);
+        overQuan -= 1;
+      }
+    } else {
+      if (data.val().itemQuantity > data.val().itemMaxQuantity) {
+        overKeys.push(data.key);
+        overQuan += 1;
+      }
+    }
+
+    if (expiredKeys.includes(data.key)) {
+      let expiredCounter = 0;
+      if (typeof data.val()["expiryDate"] != "undefined") {
+        const currentDate = new Date();
+        let expiryDate = data.val()["expiryDate"];
+
+        for (let x = 0; x < expiryDate.length; x++) {
+          let expiry = expiryDate[x]["date"];
+          let notify = expiryDate[x]["notify"];
+          if (checkExpiry(currentDate, expiry, notify, data.key)) {
+            expiredCounter++;
+          }
+        }
+        if (expiredCounter <= 0) {
+          expiredKeys.splice(expiredKeys.indexOf(data.key), 1);
+          expiredQuan -= 1;
+        }
+      } else {
+        expiredKeys.splice(expiredKeys.indexOf(data.key), 1);
+        expiredQuan -= 1;
+      }
+    } else {
+      if (typeof data.val()["expiryDate"] != "undefined") {
+        const currentDate = new Date();
+        let expiryDate = data.val()["expiryDate"];
+
+        for (let x = 0; x < expiryDate.length; x++) {
+          let expiry = expiryDate[x]["date"];
+          let notify = expiryDate[x]["notify"];
+
+          if (checkExpiry(currentDate, expiry, notify, data.key)) {
+            expiredKeys.push(data.key);
+            expiredQuan++;
+            break;
+          }
+        }
+      }
+    }
+
+    $("#criticalStock").text(critQuan);
+    $("#overStocked").text(overQuan);
+    $("#aboutToExpire").text(expiredQuan);
+  });
+
+  function insertDetails(key, value) {
+    const td = document.createElement("td");
+    const span = document.createElement("span");
+
+    $(span).text(value);
+    span.className = "primary";
+    span.addEventListener("click", function () {
+      viewDetails(key);
+    });
+
+    td.appendChild(span);
+    return td;
+  }
+
+  function insertDataToTable(value, status) {
+    const td = document.createElement("td");
+    $(td).text(value);
+    if (status) {
+      if (value == "Paid") {
+        td.className = "success";
+      } else {
+        td.className = "danger";
+      }
+    }
+    return td;
+  }
+
+  const logRef = ref(db, "TransactionLog");
+  const logQuery = query(logRef, orderByKey(), startAt(now));
+  onChildAdded(logQuery, (data) => {
+    var rowCount = $("#reportTable tr").length - 1;
+    if (rowCount == 5) {
+      $("#reportTable").find("tr:last").remove();
+    }
+
+    const tr = document.createElement("tr");
+
+    tr.appendChild(insertDataToTable(data.val().transactionID));
+    tr.appendChild(insertDataToTable(data.val().currentDate));
+    tr.appendChild(insertDataToTable(data.val().currentTime));
+    tr.appendChild(insertDataToTable(data.val().status, true));
+    tr.appendChild(insertDataToTable(data.val().totalPrice));
+    tr.appendChild(insertDetails(data.key, "Details"));
+
+    document.querySelector("#reportTable tbody").prepend(tr);
+  });
+
+  const actRef = ref(db, "SystemActivities");
+  const actQuery = query(actRef, orderByKey(), startAt(now));
+  onChildAdded(actQuery, (data) => {
+    var rowCount = $("#updateData div").length;
+    if (rowCount >= 9) {
+      $("#updateData").find("div:last").remove();
+      $("#updateData").find("div:last").remove();
+      $("#updateData").find("div:last").remove();
+    }
+
+    const divData = document.createElement("div");
+    divData.className = "update";
+
+    const divImage = document.createElement("div");
+    divImage.className = "profile-photo";
+
+    const image = document.createElement("img");
+    divImage.appendChild(image);
+    image.setAttribute("src", data.val().imgsrc);
+    const divMessage = document.createElement("div");
+    divMessage.className = "message";
+
+    const p = document.createElement("p");
+    const b = document.createElement("b");
+    const text = document.createTextNode(data.val().actionsMade);
+    $(b).text(data.val().currentUser);
+
+    p.appendChild(b);
+    p.appendChild(text);
+
+    const small = document.createElement("small");
+    small.className = "text-muted";
+    $(small).text(data.val().dateCreated + "   " + data.val().timeCreated);
+
+    divMessage.appendChild(p);
+    divMessage.appendChild(small);
+
+    divData.appendChild(divImage);
+    divData.appendChild(divMessage);
+
+    document.querySelector("#updateData").prepend(divData);
+  });
+
+  const reference = ref(db, "Items/");
+  function addTableItemClass(itemData) {
+    const { itemQuantity, itemCriticalQuantity, itemMaxQuantity } = itemData;
+    let className = "";
+    if (itemQuantity <= itemCriticalQuantity) {
+      className = "danger";
+    } else if (itemQuantity > itemMaxQuantity) {
+      className = "warning";
+    }
+    return className;
+  }
+
+  function expiryDataChecker(expiryDateParams) {
+    const expiryList = expiryDateParams.map((expiryData) => ({
+      notify: Number(expiryData.notify),
+      date: new Date(expiryData.date),
+    }));
+
+    expiryList.sort((date1, date2) => date1.date - date2.date);
+
+    let firstAboutToExpire = null;
+    let className = null;
+
+    if (expiryList.length > 0) {
+      const today = new Date();
+
+      for (const expiryData of expiryList) {
+        const expiryDate = expiryData.date.toISOString().slice(0, 10);
+
+        if (expiryData.date > today) {
+          const aboutToExpire = new Date(expiryData.date);
+          aboutToExpire.setDate(aboutToExpire.getDate() - expiryData.notify);
+
+          if (
+            aboutToExpire <= today &&
+            (!firstAboutToExpire || expiryData.date > firstAboutToExpire)
+          ) {
+            className = "warning";
+            firstAboutToExpire = expiryDate;
+          }
+        } else {
+          className = "danger";
+          if (!firstAboutToExpire || expiryData.date > firstAboutToExpire) {
+            firstAboutToExpire = expiryDate;
+          }
+        }
+      }
+
+      if (!firstAboutToExpire) {
+        firstAboutToExpire = expiryList[0].date.toISOString().slice(0, 10);
+      }
+    } else {
+      firstAboutToExpire = "";
+    }
+
+    let dataObject = {
+      expiry: firstAboutToExpire,
+      class: className,
+    };
+
+    return dataObject;
+  }
+  onChildAdded(reference, (data) => {
+    const itemData = data.val();
+
+    let combinedWarningMessage = "";
+    let combinedDangerMessage = "";
+
+    if (itemData.expiryDate) {
+      const dataObject = expiryDataChecker(itemData.expiryDate);
+      let checkexpiry = dataObject.class;
+
+      if (checkexpiry === "warning" && itemData.expiryNotif) {
+        combinedWarningMessage = "An item is about to expire";
+      } else if (checkexpiry === "danger" && itemData.expiryNotif) {
+        combinedDangerMessage = "An item is expired";
+      }
+    }
+
+    const quantityClass = addTableItemClass(itemData);
+    if (quantityClass == "danger" && itemData.criticalNotif) {
+      if (combinedDangerMessage) {
+        combinedDangerMessage += " and ";
+      }
+      combinedDangerMessage += "An item reached critical level";
+    } else if (quantityClass == "warning" && itemData.overStockNotif) {
+      if (combinedWarningMessage) {
+        combinedWarningMessage += " and ";
+      }
+      combinedWarningMessage += "An item is overstocked";
+    }
+
+    if (combinedWarningMessage) {
+      combinedWarningMessage += "!";
+      showAlert("warning", combinedWarningMessage, true);
+    }
+    if (combinedDangerMessage) {
+      combinedDangerMessage += "!";
+      showAlert("error", combinedDangerMessage, true);
+    }
+  });
+
+  onChildChanged(reference, (data) => {
+    const itemData = data.val();
+
+    let combinedWarningMessage = "";
+    let combinedDangerMessage = "";
+
+    if (itemData.expiryDate) {
+      const dataObject = expiryDataChecker(itemData.expiryDate);
+      let checkexpiry = dataObject.class;
+
+      if (checkexpiry === "warning") {
+        combinedWarningMessage = "An item is about to expire";
+      } else if (checkexpiry === "danger") {
+        combinedDangerMessage = "An item is expired";
+      }
+    }
+
+    const quantityClass = addTableItemClass(itemData);
+    if (quantityClass == "danger") {
+      if (combinedDangerMessage) {
+        combinedDangerMessage += " and ";
+      }
+      combinedDangerMessage = "An item reached critical level";
+    } else if (quantityClass == "warning") {
+      if (combinedWarningMessage) {
+        combinedWarningMessage += " and ";
+      }
+      combinedWarningMessage += "An item is overstocked";
+    }
+
+    if (combinedWarningMessage) {
+      combinedWarningMessage += "!";
+      showAlert("warning", combinedWarningMessage, true);
+    }
+    if (combinedDangerMessage) {
+      combinedDangerMessage += "!";
+      showAlert("error", combinedDangerMessage, true);
+    }
+  });
+
+  (function () {
+    const dataWeeklySales = JSON.parse("{{ labels }}");
+    for (let x = 0; x < dataWeeklySales.length; x++) {
+      let convertedDate =
+        dataWeeklySales[x].toString().substring(0, 2) +
+        "-" +
+        dataWeeklySales[x].toString().substring(2);
+      dataWeeklySales[x] = convertedDate;
+    }
+
+    const chartConfig = {
+      type: "bar",
+      data: {
+        labels: dataWeeklySales,
+        datasets: [
+          {
+            label: "Weekly Sales",
+            data: JSON.parse("{{ data }}"),
+            backgroundColor: [
+              "#3498db",
+              "#2ecc71",
+              "#e74c3c",
+              "#9b59b6",
+              "#e67e22",
+              "#f1c40f",
+              "#1abc9c",
+            ],
+          },
+        ],
+      },
+      options: {
+        plugins: {
+          legend: {
+            labels: {
+              // This more specific font property overrides the global property
+              font: {
+                size: 17,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const myChart = new Chart(
+      document.getElementById("weeklySales"),
+      chartConfig
+    );
+
+    // Function to update chart data
+    function updateChartData(labels, data) {
+      myChart.data.labels = labels;
+      myChart.data.datasets[0].data = data;
+      myChart.update();
+    }
+
+    let now = push(child(ref(db), "TransactionLog")).key;
+    const queryData = query(reference, orderByKey(), startAt(now));
+    onChildAdded(queryData, (data) => {
+      const newData = JSON.parse("{{ data }}");
+      newData[newData.length - 1] += data.val().totalPrice;
+      updateChartData(dataWeeklySales, newData);
+    });
+  })();
+
+  (function () {
+    const labelsTopItems = [];
+    const dataTopItems = [];
+    const itemNameList = $("#itemNameList li");
+    for (let item of itemNameList) {
+      labelsTopItems.push($(item).text());
+    }
+
+    const totalSoldList = $("#totalSoldList li");
+    for (let totalSoldItem of totalSoldList) {
+      dataTopItems.push($(totalSoldItem).text());
+    }
+
+    const chartConfig = {
+      type: "bar",
+      data: {
+        labels: labelsTopItems,
+        datasets: [
+          {
+            label: "Top 5 Best-Selling Items",
+            data: dataTopItems,
+            backgroundColor: [
+              "#3498db", // Blue
+              "#2ecc71", // Green
+              "#e74c3c", // Red
+              "#8e44ad", // Purple
+              "#f39c12",
+            ],
+          },
+        ],
+      },
+      options: {
+        plugins: {
+          legend: {
+            labels: {
+              // This more specific font property overrides the global property
+              font: {
+                size: 17,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const myChart = new Chart(document.getElementById("topItems"), chartConfig);
+    function updateChartData(chartData) {
+      myChart.data.labels = chartData.map((item) => item.itemName);
+      myChart.data.datasets[0].data = chartData.map((item) => item.totalSold);
+      myChart.update();
+    }
+
+    let now = push(child(ref(db), "TransactionLog")).key;
+    const queryData = query(reference, orderByKey(), startAt(now));
+    onChildAdded(queryData, (data) => {
+      const itemsReference = ref(db, "Items/");
+      const top5ItemsQuery = query(
+        itemsReference,
+        orderByChild("totalSold"),
+        limitToLast(5)
+      );
+      get(top5ItemsQuery)
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const top5Items = snapshot.val() || {};
+            const top5ItemsArray = Object.values(top5Items);
+            const sortedTop5Items = top5ItemsArray.sort(
+              (a, b) => a.totalSold - b.totalSold
+            );
+            const chartDataItem = sortedTop5Items.map((item) => ({
+              itemName: item.itemName,
+              totalSold: item.totalSold,
+            }));
+
+            updateChartData(chartDataItem);
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    });
+  })();
 </script>
 {% endblock PageContents%}
