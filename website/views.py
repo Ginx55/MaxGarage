@@ -2208,7 +2208,7 @@ Best regards,
 
 MXGM
 Date: {current_date}
-Time: {current_date_time_ph}
+Time: {current_time_ph}
 """
 
     return subject, message
