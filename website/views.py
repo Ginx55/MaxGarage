@@ -183,6 +183,11 @@ def send_forgot_pass(request):
     try:
         user_data = db.child("Users").order_by_child("email").equal_to(emailText).get().val()
         if user_data:
+            user_data_key = list(user_data.keys())[0]
+            if user_data and "tempPassword" in user_data[user_data_key]:
+                return JsonResponse({'authenticated': False, 'error_message': 'Account not activated!'}, status=400)
+            
+        if user_data:
             user_key = list(user_data.keys())[0]
             if user_data[user_key]['status']:
                 authentication.send_password_reset_email(emailText)
@@ -1744,7 +1749,7 @@ def AddUser(request):
                 current_date = datetime.now(ph_timezone)
                 nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
                 userData = {
-                    "dateCreated": current_date,
+                    "dateCreated": str(current_date),
                     "username": username,
                     "role": role,
                     "email": email,
