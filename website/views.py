@@ -692,7 +692,11 @@ def ReturnToInventory(request):
                         pass
 
             db.child("VoidedTransactions").child(transkey).update({"itemStatus": "returned to inventory"})
-
+            avtivity = {
+                "Transaction ID" : transaction["transactionID"],
+                "Status" : "items returned to inventory"
+            }
+            add_system_activities(request, "updated a voided transaction", avtivity)
             return HttpResponse("Items have been successfully returned to inventory!")
         except Exception as e:
             return HttpResponse(f"An error occurred: {str(e)}", status=500)
