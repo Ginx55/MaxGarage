@@ -299,6 +299,7 @@
 
   function closeTransactionDetails() {
     $("#transactionID").text("");
+    $("#cashier-text").text("");
     $("#customer").text("");
     $("#date").text("");
     $("#time").text("");
@@ -665,6 +666,7 @@
 
   function closeTransactionDetails() {
     $("#transactionID").text("");
+    $("#cashier-text").text("");
     $("#customer").text("");
     $("#date").text("");
     $("#time").text("");
@@ -731,7 +733,7 @@
           tableBody.remove();
         }
         $("#transactionID").text(transactionDetails["transactionID"]);
-        $("#cashier").text(transactionDetails["currentUser"]);
+        $("#cashier-text").text(transactionDetails["currentUser"]);
         $("#customer").text(transactionDetails["customer"]);
         $("#currentUser").text(transactionDetails["currentUser"]);
         $("#date").text(transactionDetails["currentDate"]);
@@ -921,7 +923,7 @@
       transData.transactionID,
       transData.currentDate,
       transData.currentTime,
-      transData.currentUser,
+      transData.customer,
       transData.status,
       transData.totalPrice,
       "<span class='material-symbols-outlined'> block </span>",

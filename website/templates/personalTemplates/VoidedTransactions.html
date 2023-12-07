@@ -118,6 +118,7 @@
 <script>
   function closeTransactionDetails() {
     $("#transactionID").text("");
+    $("#cashier-text").text("");
     $("#customer").text("");
     $("#date").text("");
     $("#time").text("");
@@ -362,7 +363,7 @@
       transData.transactionID,
       transData.currentDate,
       transData.currentTime,
-      transData.currentUser,
+      transData.customer,
       transData.status,
       transData.itemStatus,
       transData.totalPrice,
