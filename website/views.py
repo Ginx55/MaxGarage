@@ -2120,7 +2120,7 @@ def getItemData(request):
     return JsonResponse(item_list)
 
 # FOR SENDING EMAILS
-def voided_transaction_message(transaction_id, remarks):
+def voided_transaction_message(request, transaction_id, remarks):
     current_date = str(date.today())
     ph_timezone = pytz.timezone('Asia/Manila')
 
@@ -2135,7 +2135,7 @@ Automated System Notification:
 This message serves as an alert for a recently voided transaction:
 
 Transaction ID: {transaction_id}
-Cashier: {request.session['username']}
+User: {request.session['username']}
 Voided Date: {current_date + " " + current_time_ph}
 Remarks: {remarks}
 
