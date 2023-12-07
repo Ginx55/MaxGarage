@@ -218,8 +218,10 @@ def Dashboard(request):
     thread.start()
 
     topItemsSold = db.child("Items").order_by_child("itemSold").limit_to_first(5).get().val()
-    
-    negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
+
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    negaInt = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
 
     def get_activities_with_image_url(activity_list):
         for key, activity in activity_list.items():
@@ -233,9 +235,8 @@ def Dashboard(request):
     except AttributeError:
         pass
 
-    currentDate = datetime.now()
-    startDate = currentDate - timedelta(days=6)
-    date_range = [(startDate + timedelta(x)).strftime("%Y%m%d") for x in range((currentDate - startDate).days + 1)]
+    startDate = current_date - timedelta(days=6)
+    date_range = [(startDate + timedelta(x)).strftime("%Y%m%d") for x in range((current_date - startDate).days + 1)]
 
     labels = [int(date[-4:]) for date in date_range]
     data = []
@@ -473,14 +474,15 @@ def TransactionLog(request):
     request.session['uid'] = local_id
     request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
-    negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    negaInt = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
 
     transactionList = db.child("TransactionLog").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
     topItemsSold = db.child("Items").order_by_child("itemSold").limit_to_first(5).get().val()
 
-    currentDate = datetime.now()
-    startDate = currentDate - timedelta(6)
-    date_range = [(startDate + timedelta(x)).strftime("%Y%m%d") for x in range((currentDate - startDate).days + 1)]
+    startDate = current_date - timedelta(6)
+    date_range = [(startDate + timedelta(x)).strftime("%Y%m%d") for x in range((current_date - startDate).days + 1)]
 
     labels = [int(date[4:8]) for date in date_range]
     data = []
@@ -636,8 +638,10 @@ def VoidedTransactions(request):
     request.session['uid'] = local_id
     request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
-    negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
-    transactionList = db.child("VoidedTransactions").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
+    transactionList = db.child("VoidedTransactions").order_by_child("negaIntDate").start_at(nega_int).limit_to_first(10).get().val()
     data = {
         "Title" : "Voided Transactions",
         "User" : request.session['username'],
@@ -847,6 +851,10 @@ def add_item(request):
                         error_message = "Invalid file format."
                         return JsonResponse({"message": "Invalid data", "errors": {"file": [error_message]}}, status=400)
 
+                ph_timezone = pytz.timezone('Asia/Manila')
+                current_date = datetime.now(ph_timezone)
+                nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
+
                 item_data = {
                     "fixedID" : fixedID,
                     "itemID": data['itemID'],
@@ -858,7 +866,7 @@ def add_item(request):
                     "itemCriticalQuantity": data['itemCriticalQuantity'],
                     "expiryDate": data['expiryDates'],
                     "location": 'Items',
-                    "negaIntDate": -int(datetime.now().strftime("%Y%m%d%H%M%S")),
+                    "negaIntDate": nega_int,
                     "totalSold": 0,
                     "criticalNotif" : True,
                     "overStockNotif" : True,
@@ -1052,8 +1060,9 @@ def save_edit_item(request):
         return JsonResponse({"message": "An unexpected error occurred"}, status=500)
 
 def check_expiry(expiry_dates):
-    current_date = datetime.now()
-    
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+
     expired_dates = []
     about_to_expire_dates = []
     earliest_expiry_date = None
@@ -1095,7 +1104,9 @@ def item_list(request):
     request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     
-    nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
     item_list = db.child("Items").order_by_child("negaIntDate").start_at(nega_int).limit_to_first(10).get().val()
 
     if item_list:
@@ -1150,7 +1161,10 @@ def create_bin_data(item, location, current_date):
     }
 
 def create_deleted_data(item, bin_data, user):
-    nega_int_date = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    nega_int_date = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
+    
     return {
         "negaIntDate": nega_int_date,
         "data": item,
@@ -1214,8 +1228,10 @@ def Return(request):
     request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     
-    negaInt  = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
-    returnList = db.child("Return").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(10).get().val()
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
+    returnList = db.child("Return").order_by_child("negaIntDate").start_at(nega_int).limit_to_first(10).get().val()
     data = {
         "Title" : "Return",
         "User" : request.session['username'],
@@ -1317,11 +1333,13 @@ def insert_return(request):
                     fixed_id = returned_item['fixedID']
                     return_type = returned_item['returnType']
 
-                    current_datetime = datetime.now()
+                    ph_timezone = pytz.timezone('Asia/Manila')
+
+                    current_datetime = datetime.now(ph_timezone)
                     current_date = str(date.today())
                     current_time = current_datetime.strftime("%I:%M %p")
 
-                    nega_int_date = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
+                    nega_int_date = int(current_datetime.strftime("%Y%m%d%H%M%S")) * -1
 
                     item_key, item_details = get_item_details_return(item_id, fixed_id)
 
@@ -1460,8 +1478,10 @@ def SystemActivities(request):
     if request.session['role'] != 'Admin':
         raise Http404("You do not have permission to access this page.")
     
-    negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
-    activityList = db.child("SystemActivities").order_by_child("negaIntDate").start_at(negaInt).get().val()
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
+    activityList = db.child("SystemActivities").order_by_child("negaIntDate").start_at(nega_int).get().val()
     try:
         for key, item in activityList.items():
             action = item["actionsMade"]
@@ -1499,20 +1519,22 @@ def add_system_activities(request, activity, updatedValues):
     request.session['uid'] = local_id
     request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
-    int_current_date = datetime.now()
-    intDate = int(int_current_date.strftime("%Y%m%d%H%M%S"))
+    ph_timezone = pytz.timezone('Asia/Manila')
+
+    int_current_date = datetime.now(ph_timezone)
+    int_date = int(int_current_date.strftime("%Y%m%d%H%M%S"))
 
     current_date = str(date.today())
-    current_time = int_current_date.strftime("%I:%M %p") 
+    current_time = int_current_date.strftime("%I:%M %p")
 
-    negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
+    nega_int = int(int_current_date.strftime("%Y%m%d%H%M%S")) * -1
     activitiesData = {
-        "intDateCreated" : intDate,
+        "intDateCreated" : int_date,
         "dateCreated" : current_date,
         "timeCreated" : current_time,
         "actionsMade" : activity,
         "updatedValues" : updatedValues,
-        "negaIntDate" : negaInt,
+        "negaIntDate" : nega_int,
         "userID" : local_id,
         "role" : user_data[user_data_key]['role'],
         "currentUser" : user_data[user_data_key]['username'],
@@ -1564,8 +1586,10 @@ def RecycleBin(request):
     if request.session['role'] == 'Cashier':
         raise Http404("You do not have permission to access this page.")
     
-    negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
-    binList = db.child("RecycleBin").order_by_child("negaIntDate").start_at(negaInt).get().val()
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
+    binList = db.child("RecycleBin").order_by_child("negaIntDate").start_at(nega_int).get().val()
     data = {
         "Title" : "Archive",
         "User" : request.session['username'],
@@ -1597,8 +1621,10 @@ def UserList(request):
     if request.session['role'] != 'Admin':
         raise Http404("You do not have permission to access this page.")
     
-    negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
-    userList = db.child("Users").order_by_child("negaIntDate").start_at(negaInt).get().val()
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
+    userList = db.child("Users").order_by_child("negaIntDate").start_at(nega_int).get().val()
     data = {
         "Title" : "User List",
         "User" : request.session['username'],
@@ -1717,7 +1743,9 @@ def AddUser(request):
                         return JsonResponse({"message": "Invalid data", "errors": {"file": [error_message]}}, status=400)
                 
                 current_date = str(date.today())
-                negaInt = int(datetime.now().strftime("%Y%m%d%H%M%S")) * -1
+                ph_timezone = pytz.timezone('Asia/Manila')
+                current_date = datetime.now(ph_timezone)
+                nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
                 userData = {
                     "dateCreated": current_date,
                     "username": username,
@@ -1725,7 +1753,7 @@ def AddUser(request):
                     "email": email,
                     "contact": contact,
                     "mode": "Light Mode",
-                    "negaIntDate": negaInt,
+                    "negaIntDate": nega_int,
                     "status": True,
                     "lastLogin": "",
                     "imgsrc" : imgsrc,
@@ -1981,7 +2009,9 @@ def CriticalQuantities(request):
     request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
 
     
-    nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
     filtered_items = {}
     try:
         filtered_items = {
@@ -2040,7 +2070,9 @@ def AboutToExpire(request):
     request.session['uid'] = local_id
     request.session['imgsrc'] = user_data[user_data_key]['imgsrc']
     
-    nega_int = -int(datetime.now().strftime("%Y%m%d%H%M%S"))
+    ph_timezone = pytz.timezone('Asia/Manila')
+    current_date = datetime.now(ph_timezone)
+    nega_int = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
     item_list = db.child("Items").order_by_child("negaIntDate").start_at(nega_int).get().val()
     filtered_items = {}
     
@@ -2092,8 +2124,10 @@ def getItemData(request):
 # FOR SENDING EMAILS
 def voided_transaction_message(transaction_id, remarks):
     current_date = str(date.today())
-    current_date_time = datetime.now()
-    current_time = current_date_time.strftime("%I:%M %p")
+    ph_timezone = pytz.timezone('Asia/Manila')
+
+    current_date_time_ph = datetime.now(ph_timezone)
+    current_time_ph = current_date_time_ph.strftime("%I:%M %p")
 
     subject = "Transaction Voided - Important Notification"
     
@@ -2103,7 +2137,7 @@ Automated System Notification:
 This message serves as an alert for a recently voided transaction:
 
 Transaction ID: {transaction_id}
-Voided Date: {current_date + " " + current_time}
+Voided Date: {current_date + " " + current_time_ph}
 Remarks: {remarks}
 
 Please review the voided transaction and take any necessary actions.
@@ -2114,15 +2148,17 @@ Best regards,
 
 MXGM
 Date: {current_date}
-Time: {current_time}
+Time: {current_time_ph}
 """
 
     return subject, message
 
 def email_expiry_contents(expiry_datelist):
     current_date = str(date.today())
-    current_date_time = datetime.now()
-    current_time = current_date_time.strftime("%I:%M %p")
+    ph_timezone = pytz.timezone('Asia/Manila')
+
+    current_date_time_ph = datetime.now(ph_timezone)
+    current_time_ph = current_date_time_ph.strftime("%I:%M %p")
 
     subject = "Inventory Alert - Expiry Notification"
     
@@ -2168,15 +2204,17 @@ Best regards,
 
 MXGM
 Date: {current_date}
-Time: {current_time}
+Time: {current_date_time_ph}
 """
 
     return subject, message
 
 def email_critical_contents(items):
     current_date = str(date.today())
-    current_date_time = datetime.now()
-    current_time = current_date_time.strftime("%I:%M %p")
+    ph_timezone = pytz.timezone('Asia/Manila')
+
+    current_date_time_ph = datetime.now(ph_timezone)
+    current_time_ph = current_date_time_ph.strftime("%I:%M %p")
 
     subject = "Inventory Alert - Critical Quantity"
     
@@ -2207,15 +2245,17 @@ Best regards,
 
 MXGM
 Date: {current_date}
-Time: {current_time}
+Time: {current_time_ph}
 """
 
     return subject, message
 
 def email_overstocked_contents(items):
     current_date = str(date.today())
-    current_date_time = datetime.now()
-    current_time = current_date_time.strftime("%I:%M %p")
+    ph_timezone = pytz.timezone('Asia/Manila')
+
+    current_date_time_ph = datetime.now(ph_timezone)
+    current_time_ph = current_date_time_ph.strftime("%I:%M %p")
 
     subject = "Inventory Alert - Overstocked Quantity"
     
@@ -2247,7 +2287,7 @@ Best regards,
 
 MXGM
 Date: {current_date}
-Time: {current_time}
+Time: {current_time_ph}
 """
 
     return subject, message
