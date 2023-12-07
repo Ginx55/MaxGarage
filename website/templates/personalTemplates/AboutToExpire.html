@@ -970,20 +970,20 @@
       const dataObject = expiryDataChecker(itemData.expiryDate);
       let checkexpiry = dataObject.class;
 
-      if (checkexpiry === "warning") {
+      if (checkexpiry === "warning" && itemData.expiryNotif) {
         combinedWarningMessage = "An item is about to expire";
-      } else if (checkexpiry === "danger") {
+      } else if (checkexpiry === "danger" && itemData.expiryNotif) {
         combinedDangerMessage = "An item is expired";
       }
     }
 
     const quantityClass = addTableItemClass(itemData);
-    if (quantityClass == "danger") {
+    if (quantityClass == "danger" && itemData.criticalNotif) {
       if (combinedDangerMessage) {
         combinedDangerMessage += " and ";
       }
-      combinedDangerMessage = "An item reached critical level";
-    } else if (quantityClass == "warning") {
+      combinedDangerMessage += "An item reached critical level";
+    } else if (quantityClass == "warning" && itemData.overStockNotif) {
       if (combinedWarningMessage) {
         combinedWarningMessage += " and ";
       }
@@ -1222,7 +1222,7 @@
       .draw(false);
   });
 
-  onChildAdded(reference, (data) => {
+  onChildAdded(itemsReference, (data) => {
     const itemData = data.val();
 
     let combinedWarningMessage = "";
@@ -1262,7 +1262,7 @@
     }
   });
 
-  onChildChanged(reference, (data) => {
+  onChildChanged(itemsReference, (data) => {
     const itemData = data.val();
 
     let combinedWarningMessage = "";
@@ -1272,20 +1272,20 @@
       const dataObject = expiryDataChecker(itemData.expiryDate);
       let checkexpiry = dataObject.class;
 
-      if (checkexpiry === "warning") {
+      if (checkexpiry === "warning" && itemData.expiryNotif) {
         combinedWarningMessage = "An item is about to expire";
-      } else if (checkexpiry === "danger") {
+      } else if (checkexpiry === "danger" && itemData.expiryNotif) {
         combinedDangerMessage = "An item is expired";
       }
     }
 
     const quantityClass = addTableItemClass(itemData);
-    if (quantityClass == "danger") {
+    if (quantityClass == "danger" && itemData.criticalNotif) {
       if (combinedDangerMessage) {
         combinedDangerMessage += " and ";
       }
-      combinedDangerMessage = "An item reached critical level";
-    } else if (quantityClass == "warning") {
+      combinedDangerMessage += "An item reached critical level";
+    } else if (quantityClass == "warning" && itemData.overStockNotif) {
       if (combinedWarningMessage) {
         combinedWarningMessage += " and ";
       }
