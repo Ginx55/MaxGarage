@@ -6,6 +6,7 @@ import threading
 import os
 import imghdr
 from itertools import islice
+import pytz
 
 from django import forms
 from django.conf import settings
@@ -406,12 +407,13 @@ def insert_transaction(request):
             for item_key, update_data in item_updates.items():
                 db.child("Items").child(item_key).update(update_data)
 
-            current_date_time = datetime.now()
+            ph_timezone = pytz.timezone('Asia/Manila')
+            current_date_time_ph = datetime.now(ph_timezone)
             transaction_id = generate_transaction_id()
             current_date = str(date.today())
-            current_time = current_date_time.strftime("%I:%M %p")
-            int_date = int(datetime.now().strftime("%Y%m%d"))
-            nega_int = -1 * int(current_date_time.strftime("%Y%m%d%H%M%S"))
+            current_time = current_date_time_ph.strftime("%I:%M %p")
+            int_date = int(current_date_time_ph.strftime("%Y%m%d"))
+            nega_int = -1 * int(current_date_time_ph.strftime("%Y%m%d%H%M%S"))
             current_user = request.session.get('username', '')
 
             change = payment - total
