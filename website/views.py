@@ -2131,6 +2131,7 @@ Automated System Notification:
 This message serves as an alert for a recently voided transaction:
 
 Transaction ID: {transaction_id}
+Cashier: {request.session['username']}
 Voided Date: {current_date + " " + current_time_ph}
 Remarks: {remarks}
 
