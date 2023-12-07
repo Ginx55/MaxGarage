@@ -59,6 +59,12 @@
 }
 
 /* Styling for .reportTables .tableFixHead */
+.transDetails .tableFixHead {
+  overflow-y: auto;
+  height: 20rem;
+  margin-right: 10px;
+}
+
 .reportTables .tableFixHead {
   overflow-y: auto;
   height: 30rem;
