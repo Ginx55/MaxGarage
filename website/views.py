@@ -517,6 +517,7 @@ def TransactionDetails(request):
         for index, item_bought in enumerate(items_bought):
             items_bought[index]["imgsrc"] = getImageURL("item_images/", item_bought["fixedID"])
         request.session['transactionKey'] = transactionID
+        print(transaction)
         return JsonResponse(transaction)
     
 def send_void_email(delay, transactionID, remarks):

@@ -56,7 +56,7 @@
           <th>Transaction ID</th>
           <th>Date</th>
           <th>Time</th>
-          <th>User</th>
+          <th>Customer</th>
           <th>Status</th>
           <th>Total</th>
           <th>Void</th>
@@ -68,7 +68,7 @@
           <td>{{value.transactionID}}</td>
           <td>{{value.currentDate}}</td>
           <td>{{value.currentTime}}</td>
-          <td>{{value.currentUser}}</td>
+          <td>{{value.customer}}</td>
           <td class="success">{{value.status}}</td>
           <td>{{value.totalPrice}}</td>
           <td class="danger" id="{{key}}">
@@ -89,6 +89,7 @@
   <br />
   <div class="transLabels">
     <b> Transaction ID: </b> <span id="transactionID"></span><br />
+    <b> Cashier: </b> <span id="cashier-text"></span><br />
     <b> Customer: </b> <span id="customer"></span><br />
     <b> Date: </b> <span id="date"></span><br />
     <b> Time: </b> <span id="time"></span><br />
@@ -364,8 +365,8 @@
           tableBody.remove();
         }
         $("#transactionID").text(transactionDetails["transactionID"]);
+        $("#cashier-text").text(transactionDetails["currentUser"]);
         $("#customer").text(transactionDetails["customer"]);
-        $("#currentUser").text(transactionDetails["currentUser"]);
         $("#date").text(transactionDetails["currentDate"]);
         $("#time").text(transactionDetails["currentTime"]);
         $("#status").text(transactionDetails["status"]);
@@ -730,6 +731,7 @@
           tableBody.remove();
         }
         $("#transactionID").text(transactionDetails["transactionID"]);
+        $("#cashier").text(transactionDetails["currentUser"]);
         $("#customer").text(transactionDetails["customer"]);
         $("#currentUser").text(transactionDetails["currentUser"]);
         $("#date").text(transactionDetails["currentDate"]);

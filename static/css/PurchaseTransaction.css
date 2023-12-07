@@ -17,6 +17,7 @@ main .TableContents table {
   text-align: center;
   box-shadow: var(--box-shadow);
   transition: all 300ms ease;
+  font-size: 18px;
 }
 
 main .TableContents table:hover {
@@ -70,40 +71,6 @@ main .TableContents a {
   color: var(--color-dark);
   border-radius: var(--border-radius-1);
   padding: 10px;
-}
-
-/* Additional Styles */
-.addBatch {
-  display: none;
-}
-
-/* Search Styles */
-.TableContents .search {
-  float: right;
-  text-align: center;
-}
-
-.TableContents .search input {
-  background: var(--color-white);
-  color: var(--color-dark);
-  box-sizing: border-box;
-  border-radius: var(--border-radius-1);
-  width: 10rem;
-  height: 2.6rem;
-  padding: 0.46rem;
-  margin-bottom: 5px;
-  font-family: "Poppins", sans-serif;
-}
-
-.TableContents .search button {
-  background: var(--color-white);
-  color: var(--color-dark);
-  border-radius: var(--border-radius-1);
-  padding: 0.46rem;
-  font-family: "Poppins", sans-serif;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Circle Icon Styles */
@@ -242,6 +209,7 @@ th.price {
 .additional-table {
   display: table;
   width: 100%;
+  border-top: 1px solid black;
   border-collapse: collapse;
 }
 
@@ -273,6 +241,10 @@ th.price {
 .additional-table .additional-table-cell:last-child {
   width: 40px; /* Same as the width of price column in the original table */
   max-width: 40px;
+}
+
+.TableContents table button{
+  background: transparent;
 }
 
 @media screen and (max-width: 1200px) {

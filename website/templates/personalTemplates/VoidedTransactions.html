@@ -1,5 +1,9 @@
 {% extends 'navBar.html'%} {%load static%} {% block PageContents%}
-<link rel="stylesheet" type="text/css" href="{% static 'css/TransactionLog.css' %}" />
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="{% static 'css/TransactionLog.css' %}"
+/>
 <link
   href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500&display=swap"
   rel="stylesheet"
@@ -45,7 +49,7 @@
           <th>Transaction ID</th>
           <th>Date</th>
           <th>Time</th>
-          <th>User</th>
+          <th>Customer</th>
           <th>Status</th>
           <th>Item Status</th>
           <th>Total</th>
@@ -58,7 +62,7 @@
           <td>{{value.transactionID}}</td>
           <td>{{value.currentDate}}</td>
           <td>{{value.currentTime}}</td>
-          <td>{{value.currentUser}}</td>
+          <td>{{value.customer}}</td>
           <td class="danger">{{value.status}}</td>
           <td class="success">{{value.itemStatus}}</td>
           <td>{{value.totalPrice}}</td>
@@ -79,6 +83,7 @@
   <br />
   <div class="transLabels">
     <b> Transaction ID: </b> <span id="transactionID"></span><br />
+    <b> Cashier: </b> <span id="cashier-text"></span><br />
     <b> Customer: </b> <span id="customer"></span><br />
     <b> Date: </b> <span id="date"></span><br />
     <b> Time: </b> <span id="time"></span><br />
@@ -183,6 +188,7 @@
           tableBody.remove();
         }
         $("#transactionID").text(transactionDetails["transactionID"]);
+        $("#cashier-text").text(transactionDetails["currentUser"]);
         $("#customer").text(transactionDetails["customer"]);
         $("#date").text(transactionDetails["currentDate"]);
         $("#time").text(transactionDetails["currentTime"]);
