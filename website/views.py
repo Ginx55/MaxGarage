@@ -223,15 +223,9 @@ def Dashboard(request):
     current_date = datetime.now(ph_timezone)
     negaInt = int(current_date.strftime("%Y%m%d%H%M%S")) * -1
 
-    def get_activities_with_image_url(activity_list):
-        for key, activity in activity_list.items():
-            activity["imageURL"] = getImageURL("user_profiles/", activity["userID"])
-        return activity_list
-
     try:
         transactionList = db.child("TransactionLog").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(5).get().val()
         activityList = db.child("SystemActivities").order_by_child("negaIntDate").start_at(negaInt).limit_to_first(3).get().val()
-        activityList = get_activities_with_image_url(activityList)
     except AttributeError:
         pass
 

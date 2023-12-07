@@ -32,7 +32,7 @@
       <div class="profile">
         <div class="info">
           <p>Hi, <b>{{User}}</b></p>
-          <small class="text-muted">Admin</small>
+          <small class="text-muted">{{role}}</small>
         </div>
 
         <div class="profile-photo">
@@ -165,8 +165,8 @@
                   <img src="{{value.imgsrc}}" alt="profile" />
                 </div>
                 <div class="message">
-                  <p><b>{{value.currentUser}}</b>{{value.actionsMade}}</p>
-                  <small class="text-muted">2 Minutes Ago</small>
+                  <p><b>{{value.currentUser}}</b>   {{value.actionsMade}}</p>
+                  <small class="text-muted">{{value.dateCreated}}  {{value.timeCreated}}</small>
                 </div>
               </div>
               {% endfor %}
