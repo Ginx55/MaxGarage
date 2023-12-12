@@ -896,12 +896,26 @@
         plugins: {
           legend: {
             labels: {
-              // This more specific font property overrides the global property
               font: {
                 size: 17,
               },
             },
           },
+        },
+        scales: {
+          x: {
+            ticks: {
+              display: false, // Hide x-axis labels by default
+            },
+          },
+        },
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
+        tooltips: {
+          mode: "index",
+          intersect: false,
         },
       },
     };
