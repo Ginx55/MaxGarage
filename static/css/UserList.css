@@ -68,6 +68,7 @@ input:checked + .slider:before {
   width: 100%;
   background-color: white;
   display: none;
+  object-fit: cover;
 }
 
 .role {

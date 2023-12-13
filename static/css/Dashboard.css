@@ -172,6 +172,7 @@ main .insights .progress .number {
 }
 
 .tableFixHead img {
+  object-fit: cover;
   height: 5rem;
   width: 5rem;
   display: block;
