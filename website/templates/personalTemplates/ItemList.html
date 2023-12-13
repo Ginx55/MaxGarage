@@ -83,8 +83,12 @@
   </ul>
 
   {% if role != "Cashier" %}
-  <div class="float" id="export-quantities" onclick="openPopUp('salesReport')">
-    <span class="material-symbols-outlined circle-icon"> share_windows </span>
+  <div
+    class="float circle-icon"
+    id="export-quantities"
+    onclick="openPopUp('salesReport')"
+  >
+    <span class="material-symbols-outlined"> share_windows </span>
   </div>
 </main>
 
@@ -124,8 +128,7 @@
           />
           <span
             id="edit_generate_download"
-            class="material-symbols-outlined vertically-aligned"
-            style="font-size: 2.5rem"
+            class="material-symbols-outlined vertically-aligned custom-button"
             >barcode
           </span>
         </div>
