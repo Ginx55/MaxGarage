@@ -118,6 +118,17 @@ main table thead th {
   padding: 6px;
 }
 
+.danger {
+  font-weight: bold;
+}
+
+.success {
+  font-weight: bold;
+}
+
+.warning {
+  font-weight: bold;
+}
 
 .float {
   position: fixed;
