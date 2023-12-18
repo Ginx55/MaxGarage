@@ -1877,6 +1877,8 @@ def SaveUser(request):
             imgsrc = userData["imgsrc"]
 
             uniqueID = userData["imageName"]
+
+            changed_fields = {}
             
             if image_file is not None:
                 file_extension = get_file_extension(image_file.name)
@@ -1889,6 +1891,10 @@ def SaveUser(request):
                     uniqueID = generate_unique_id()
                     storage.child("user_profiles/" + uniqueID).put(image_file)
                     imgsrc = getImageURL("user_profiles/", uniqueID)
+
+                    changed_fields['Profile Picture'] = {
+                        "Changed Value": "updated user profile",
+                    }
                 else:
                     error_message = "Invalid file format."
                     return JsonResponse({"message": "Invalid data", "errors": {"file": [error_message]}}, status=400)
@@ -1908,7 +1914,6 @@ def SaveUser(request):
             }
             db.child("Users").child(userKey).update(updatedData)
 
-            changed_fields = {}
             field_labels = {
                 "username": "Username",
                 "contact": "Contact",
