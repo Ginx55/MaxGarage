@@ -1893,7 +1893,7 @@ def SaveUser(request):
                     imgsrc = getImageURL("user_profiles/", uniqueID)
 
                     changed_fields['Profile Picture'] = {
-                        "Changed Value": "updated user profile",
+                        "new": "new profile picture",
                     }
                 else:
                     error_message = "Invalid file format."
