@@ -1893,6 +1893,7 @@ def SaveUser(request):
                     imgsrc = getImageURL("user_profiles/", uniqueID)
 
                     changed_fields['Profile Picture'] = {
+                        "old": "",
                         "new": "new profile picture",
                     }
                 else:
